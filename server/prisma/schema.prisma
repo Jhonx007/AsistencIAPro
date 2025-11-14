@@ -16,3 +16,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Seccion {
+  id                 Int        @id @default(autoincrement())
+  id_materia         Int        @map("id_materia")
+  codigo             String     @unique
+  semestre           String
+  created_at         DateTime   @default(now()) @map("created_at")
+  updated_at         DateTime?  @map("updated_at")
+
+}
