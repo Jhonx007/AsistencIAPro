@@ -25,3 +25,10 @@ model Seccion {
   updated_at         DateTime?  @map("updated_at")
 
 }
+
+model Materia {
+  id                 Int        @id @default(autoincrement())
+  nombre             String     @unique
+  created_at         DateTime   @default(now()) @map("created_at")
+  updated_at         DateTime?  @map("updated_at")
+}
