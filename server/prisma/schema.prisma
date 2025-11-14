@@ -1,11 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-// npx prisma init for that can you inicializar el env
-// supabases => connect => method => session poole => url completa en el env y sustituir el databases
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -16,31 +8,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-
 model Profesor {
-  id                    String       @id @default(uuid()) @db.Uuid
-  nombres               String
-  apellidos             String
-  cedula                String    @unique
-  telefono              String?
-
-  created_at            DateTime  @default(now())
-  updated_at            DateTime  @updatedAt
-}
-model Seccion {
-  id                 Int        @id @default(autoincrement())
-  id_materia         Int        @map("id_materia")
-  codigo             String     @unique
-  semestre           String
-  created_at         DateTime   @default(now()) @map("created_at")
-  updated_at         DateTime?  @map("updated_at")
-
+  id         String   @id @db.Uuid
+  nombres    String
+  apellidos  String
+  cedula     String   @unique
+  telefono   String?
+  created_at DateTime @default(now())
+  updated_at DateTime
 }
 
 model Materia {
   id                 Int        @id @default(autoincrement())
   nombre             String     @unique
+  created_at         DateTime   @default(now()) @map("created_at")
+  updated_at         DateTime?  @map("updated_at")
+}
+
+model Seccion {
+  id                 Int        @id @default(autoincrement())
+  id_materia         Int        @map("id_materia")
+  codigo             String     @unique
+  semestre           String
   created_at         DateTime   @default(now()) @map("created_at")
   updated_at         DateTime?  @map("updated_at")
 }
