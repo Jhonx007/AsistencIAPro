@@ -7,7 +7,7 @@
 // supabases => connect => method => session poole => url completa en el env y sustituir el databases
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
