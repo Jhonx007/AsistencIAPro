@@ -7,7 +7,7 @@
 // supabases => connect => method => session poole => url completa en el env y sustituir el databases
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../generated/prisma"
 }
 
@@ -16,3 +16,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+
+model Profesor {
+  id                    String       @id @default(uuid()) @db.Uuid
+  nombres               String
+  apellidos             String
+  cedula                String    @unique
+  telefono              String?
+
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+}
