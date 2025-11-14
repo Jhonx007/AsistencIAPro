@@ -28,3 +28,19 @@ model Profesor {
   created_at            DateTime  @default(now())
   updated_at            DateTime  @updatedAt
 }
+model Seccion {
+  id                 Int        @id @default(autoincrement())
+  id_materia         Int        @map("id_materia")
+  codigo             String     @unique
+  semestre           String
+  created_at         DateTime   @default(now()) @map("created_at")
+  updated_at         DateTime?  @map("updated_at")
+
+}
+
+model Materia {
+  id                 Int        @id @default(autoincrement())
+  nombre             String     @unique
+  created_at         DateTime   @default(now()) @map("created_at")
+  updated_at         DateTime?  @map("updated_at")
+}
