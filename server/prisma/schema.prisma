@@ -33,3 +33,12 @@ model Seccion {
   created_at         DateTime   @default(now()) @map("created_at")
   updated_at         DateTime?  @map("updated_at")
 }
+
+model Estudiante {
+  id             Int        @id @default(autoincrement())
+  nombres        String     
+  apellidos      String
+  cedula         String     @unique
+  created_at     DateTime   @default(now())
+  updated_at     DateTime
+}
