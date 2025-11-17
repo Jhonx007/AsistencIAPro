@@ -26,38 +26,45 @@ model Materia {
 }
 
 model Seccion {
-  id         Int       @id @default(autoincrement())
-  id_materia Int       @map("id_materia")
-  codigo     String    @unique
+  id         Int         @id @default(autoincrement())
+  id_materia Int         @map("id_materia")
+  codigo     String      @unique
   semestre   String
-  created_at DateTime  @default(now()) @map("created_at")
-  updated_at DateTime? @map("updated_at")
-  Matricula          Matricula[]
-
+  created_at DateTime    @default(now()) @map("created_at")
+  updated_at DateTime?   @map("updated_at")
+  Matricula  Matricula[]
 }
 
 model Estudiante {
-  id         Int      @id @default(autoincrement())
+  id         Int         @id @default(autoincrement())
   nombres    String
   apellidos  String
-  cedula     String   @unique
-  created_at DateTime @default(now())
+  cedula     String      @unique
+  created_at DateTime    @default(now())
   updated_at DateTime
-  Matricula          Matricula[]
+  Matricula  Matricula[]
 }
 
-// Tabla Intermedia (Muchos a Muchos)
 model Matricula {
-  id_estudiante      Int        @map("id_estudiante")
-  id_seccion         Int        @map("id_seccion")
-  created_at         DateTime   @default(now()) @map("created_at")
-  updated_at         DateTime?  @map("updated_at")
+  id_estudiante Int
+  id_seccion    Int
+  created_at    DateTime   @default(now())
+  updated_at    DateTime?
+  Estudiante    Estudiante @relation(fields: [id_estudiante], references: [id])
+  Seccion       Seccion    @relation(fields: [id_seccion], references: [id])
 
-  // Clave primaria compuesta, esto es para que un estudiante no pueda ser registrado dos veces en la misma sección
   @@id([id_estudiante, id_seccion])
-  
-  // Relaciones
-  Estudiante         Estudiante @relation(fields: [id_estudiante], references: [id])
-  Seccion            Seccion    @relation(fields: [id_seccion], references: [id])
 }
 
+model Asistencia {
+  id               Int       @id @default(autoincrement())
+  id_estudiante    Int
+  id_seccion       Int
+  fecha            DateTime  @db.Date
+  es_presente      Boolean   @default(false) @map("es_presente")
+
+  created_at       DateTime @default(now()) @map("created_at")
+  updated_at       DateTime @map("updated_at")
+
+  @@unique([id_estudiante, id_seccion, fecha])
+}
