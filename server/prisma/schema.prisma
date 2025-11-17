@@ -19,26 +19,42 @@ model Profesor {
 }
 
 model Materia {
-  id                 Int        @id @default(autoincrement())
-  nombre             String     @unique
-  created_at         DateTime   @default(now()) @map("created_at")
-  updated_at         DateTime?  @map("updated_at")
+  id         Int       @id @default(autoincrement())
+  nombre     String    @unique
+  created_at DateTime  @default(now()) @map("created_at")
+  updated_at DateTime? @map("updated_at")
 }
 
 model Seccion {
-  id                 Int        @id @default(autoincrement())
-  id_materia         Int        @map("id_materia")
-  codigo             String     @unique
-  semestre           String
-  created_at         DateTime   @default(now()) @map("created_at")
-  updated_at         DateTime?  @map("updated_at")
+  id         Int       @id @default(autoincrement())
+  id_materia Int       @map("id_materia")
+  codigo     String    @unique
+  semestre   String
+  created_at DateTime  @default(now()) @map("created_at")
+  updated_at DateTime? @map("updated_at")
 }
 
 model Estudiante {
-  id             Int        @id @default(autoincrement())
-  nombres        String     
-  apellidos      String
-  cedula         String     @unique
-  created_at     DateTime   @default(now())
-  updated_at     DateTime
+  id         Int      @id @default(autoincrement())
+  nombres    String
+  apellidos  String
+  cedula     String   @unique
+  created_at DateTime @default(now())
+  updated_at DateTime
 }
+
+// Tabla Intermedia (Muchos a Muchos)
+model Matricula {
+  id_estudiante      Int        @map("id_estudiante")
+  id_seccion         Int        @map("id_seccion")
+  created_at         DateTime   @default(now()) @map("created_at")
+  updated_at         DateTime?  @map("updated_at")
+
+  // Clave primaria compuesta, esto es para que un estudiante no pueda ser registrado dos veces en la misma sección
+  @@id([id_estudiante, id_seccion])
+  
+  // Relaciones
+  Estudiante         Estudiante @relation(fields: [id_estudiante], references: [id])
+  Seccion            Seccion    @relation(fields: [id_seccion], references: [id])
+}
+
