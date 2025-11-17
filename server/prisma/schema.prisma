@@ -33,6 +33,7 @@ model Seccion {
   created_at DateTime    @default(now()) @map("created_at")
   updated_at DateTime?   @map("updated_at")
   Matricula  Matricula[]
+  Reportes   Reporte[]
 }
 
 model Estudiante {
@@ -75,4 +76,15 @@ model Profesor_Seccion {
   // Clave primaria compuesta
   @@id([id_profesor, id_seccion])
   
+}
+
+model Reporte {
+  id           Int      @id @default(autoincrement())
+  id_seccion   Int      @map("id_seccion")
+  fecha_inicio DateTime @map("fecha_inicio")
+  fecha_fin    DateTime @map("fecha_fin")
+  created_at   DateTime @default(now()) @map("created_at")
+  updated_at   DateTime @map("updated_at")
+
+  Seccion      Seccion  @relation(fields: [id_seccion], references: [id])
 }
