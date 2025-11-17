@@ -57,14 +57,22 @@ model Matricula {
 }
 
 model Asistencia {
-  id               Int       @id @default(autoincrement())
-  id_estudiante    Int
-  id_seccion       Int
-  fecha            DateTime  @db.Date
-  es_presente      Boolean   @default(false) @map("es_presente")
-
-  created_at       DateTime @default(now()) @map("created_at")
-  updated_at       DateTime @map("updated_at")
+  id            Int      @id @default(autoincrement())
+  id_estudiante Int
+  id_seccion    Int
+  fecha         DateTime @db.Date
+  es_presente   Boolean  @default(false) @map("es_presente")
+  created_at    DateTime @default(now()) @map("created_at")
+  updated_at    DateTime @map("updated_at")
 
   @@unique([id_estudiante, id_seccion, fecha])
+}
+
+model Profesor_Seccion {
+  id_profesor        String     @map("id_profesor") @db.Uuid
+  id_seccion         Int        @map("id_seccion")
+
+  // Clave primaria compuesta
+  @@id([id_profesor, id_seccion])
+  
 }
