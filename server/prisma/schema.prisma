@@ -32,6 +32,8 @@ model Seccion {
   semestre   String
   created_at DateTime  @default(now()) @map("created_at")
   updated_at DateTime? @map("updated_at")
+  Matricula          Matricula[]
+
 }
 
 model Estudiante {
@@ -41,6 +43,7 @@ model Estudiante {
   cedula     String   @unique
   created_at DateTime @default(now())
   updated_at DateTime
+  Matricula          Matricula[]
 }
 
 // Tabla Intermedia (Muchos a Muchos)
