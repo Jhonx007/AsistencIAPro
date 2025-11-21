@@ -12,7 +12,7 @@
   ],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "@prisma/client": "^6.17.1",
     "cors": "^2.8.5",
