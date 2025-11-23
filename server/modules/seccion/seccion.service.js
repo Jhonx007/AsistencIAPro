@@ -1,4 +1,3 @@
-
 import prisma from "../../config/prisma.js"
 
 class SeccionService {
@@ -7,12 +6,8 @@ class SeccionService {
     try {
       const seccion = await prisma.seccion.create({
         data: {
-          id_materia: data.id_materia,
           codigo: data.codigo,
           semestre: data.semestre,
-        },
-        include: {
-          Materia: true, // Incluir la materia relacionada
         },
       });
       return seccion;
@@ -27,9 +22,6 @@ class SeccionService {
       const secciones = await prisma.seccion.findMany({
         orderBy: {
           created_at: 'desc',
-        },
-        include: {
-          Materia: true, // Incluir la materia relacionada
         },
       });
       return secciones;
@@ -46,10 +38,10 @@ class SeccionService {
           id: parseInt(id),
         },
         include: {
-          Materia: true, // Incluir la materia relacionada
-          Profesor_Seccion: {
+          clases: {
             include: {
               Profesor: true, // Incluir los profesores asignados
+              Materia: true, // Incluir la materia de la clase
             },
           },
           Matricula: {
@@ -79,12 +71,8 @@ class SeccionService {
           id: parseInt(id),
         },
         data: {
-          ...(data.id_materia && { id_materia: data.id_materia }),
           ...(data.codigo && { codigo: data.codigo }),
           ...(data.semestre && { semestre: data.semestre }),
-        },
-        include: {
-          Materia: true, // Incluir la materia relacionada
         },
       });
       return seccion;

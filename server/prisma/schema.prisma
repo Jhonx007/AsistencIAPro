@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -8,119 +7,91 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Profesor {
-  id         String   @id @db.Uuid    // UUID de Supabase Auth
+  id         String   @id @db.Uuid
   nombres    String
   apellidos  String
   cedula     String   @unique
   telefono   String?
-
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-
-  Profesor_Seccion Profesor_Seccion[]
+  clases     clases[]
 }
-
 
 model Materia {
   id         Int       @id @default(autoincrement())
   nombre     String    @unique
-
   created_at DateTime  @default(now()) @map("created_at")
-  updated_at DateTime? @updatedAt      @map("updated_at")
-
-  Seccion    Seccion[]
+  updated_at DateTime? @updatedAt @map("updated_at")
+  clases     clases[]
 }
-
 
 model Seccion {
-  id         Int       @id @default(autoincrement())
-
-  id_materia Int       @map("id_materia")
-  Materia    Materia   @relation(fields: [id_materia], references: [id])
-
-  codigo     String    @unique
+  id         Int         @id @default(autoincrement())
+  codigo     String      @unique
   semestre   String
-
-  created_at DateTime  @default(now()) @map("created_at")
-  updated_at DateTime? @updatedAt      @map("updated_at")
-
-  Profesor_Seccion Profesor_Seccion[]
-  Matricula        Matricula[]
-  Reportes         Reporte[]
+  created_at DateTime    @default(now()) @map("created_at")
+  updated_at DateTime?   @updatedAt @map("updated_at")
+  Matricula  Matricula[]
+  Reportes   Reporte[]
+  clases     clases[]
 }
-
 
 model Estudiante {
-  id         Int       @id @default(autoincrement())
+  id         Int         @id @default(autoincrement())
   nombres    String
   apellidos  String
-  cedula     String    @unique
-
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-
+  cedula     String      @unique
+  created_at DateTime    @default(now())
+  updated_at DateTime    @updatedAt
   Matricula  Matricula[]
 }
-
 
 model Matricula {
   id_estudiante Int
   id_seccion    Int
-
-  created_at    DateTime  @default(now())
-  updated_at    DateTime? @updatedAt
+  created_at    DateTime     @default(now())
+  updated_at    DateTime?    @updatedAt
+  Asistencia    Asistencia[]
+  Estudiante    Estudiante   @relation(fields: [id_estudiante], references: [id])
+  Seccion       Seccion      @relation(fields: [id_seccion], references: [id])
 
   @@id([id_estudiante, id_seccion])
-
-  Estudiante Estudiante @relation(fields: [id_estudiante], references: [id])
-  Seccion    Seccion    @relation(fields: [id_seccion], references: [id])
-
-  Asistencia Asistencia[]
 }
 
-
 model Asistencia {
-  id            Int      @id @default(autoincrement())
-
+  id            Int       @id @default(autoincrement())
   id_estudiante Int
   id_seccion    Int
-
-  fecha         DateTime @db.Date
-  es_presente   Boolean  @default(false) @map("es_presente")
-
-  created_at    DateTime @default(now()) @map("created_at")
-  updated_at    DateTime @updatedAt      @map("updated_at")
-
-
-  Matricula Matricula @relation(fields: [id_estudiante, id_seccion],references: [id_estudiante, id_seccion])
-
+  fecha         DateTime  @db.Date
+  es_presente   Boolean   @default(false) @map("es_presente")
+  created_at    DateTime  @default(now()) @map("created_at")
+  updated_at    DateTime  @updatedAt @map("updated_at")
+  Matricula     Matricula @relation(fields: [id_estudiante, id_seccion], references: [id_estudiante, id_seccion])
 
   @@unique([id_estudiante, id_seccion, fecha])
 }
 
-
-model Profesor_Seccion {
-  id_profesor String @map("id_profesor") @db.Uuid
-  id_seccion  Int    @map("id_seccion")
-
-  @@id([id_profesor, id_seccion])
-
-  Profesor Profesor @relation(fields: [id_profesor], references: [id])
-  Seccion  Seccion  @relation(fields: [id_seccion], references: [id])
-}
-
-
 model Reporte {
   id           Int      @id @default(autoincrement())
-
   id_seccion   Int      @map("id_seccion")
   fecha_inicio DateTime @map("fecha_inicio")
   fecha_fin    DateTime @map("fecha_fin")
-
   created_at   DateTime @default(now()) @map("created_at")
-  updated_at   DateTime @updatedAt      @map("updated_at")
-
+  updated_at   DateTime @updatedAt @map("updated_at")
   Seccion      Seccion  @relation(fields: [id_seccion], references: [id])
+}
+
+model clases {
+  id          Int      @id @default(autoincrement())
+  created_at  DateTime @default(now())
+  materia_id  Int
+  profesor_id String   @db.Uuid
+  seccion_id  Int
+  updated_at  DateTime
+  Materia     Materia  @relation(fields: [materia_id], references: [id])
+  Profesor    Profesor @relation(fields: [profesor_id], references: [id])
+  Seccion     Seccion  @relation(fields: [seccion_id], references: [id])
+
+  @@unique([profesor_id, materia_id, seccion_id])
 }
