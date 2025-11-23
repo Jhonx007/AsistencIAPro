@@ -1,6 +1,8 @@
 import { InputFieldProps } from "@/types/type";
 import { Controller } from "react-hook-form";
-import { Text, TextInput, View } from "react-native";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { IconEye, IconEyeOff } from "./Icons";
 
 export default function InputField({
   name,
@@ -13,6 +15,8 @@ export default function InputField({
   secureTextEntry = false,
   ...props
 }: InputFieldProps) {
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
   return (
     <View className="gap-2 w-full mb-2">
       <Text className={`text-white text-xl font-semibold ${labelStyle}`}>
@@ -27,8 +31,8 @@ export default function InputField({
             <View
               className={`flex flex-row items-center rounded-lg border px-4 ${
                 error
-                  ? "border-red-500 bg-red-950"
-                  : "border-gray-600 bg-zinc-900"
+                  ? "border-red-500 bg-red-950 focus:border-red-300"
+                  : "border-gray-600 bg-zinc-900 focus:border-sky-500"
               } ${containerStyle}`}
             >
               {icon && <View className="mr-3">{icon}</View>}
@@ -37,10 +41,18 @@ export default function InputField({
                 value={value}
                 onChangeText={onChange}
                 placeholderTextColor="gray"
-                secureTextEntry={secureTextEntry}
+                secureTextEntry={secureTextEntry && !isPasswordVisible}
                 className={`flex-1 py-4 text-white text-lg font-semibold ${inputStyle}`}
                 {...props}
               />
+
+              {secureTextEntry && (
+                <TouchableOpacity
+                  onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                >
+                  {isPasswordVisible ? <IconEye /> : <IconEyeOff />}
+                </TouchableOpacity>
+              )}
             </View>
 
             {error && (
