@@ -3,17 +3,29 @@
 export const validateData = (schema) => {
   return async (req, res, next) => {
     try {
-      await schema.parseAsync(req.body)
+      const validatedData = await schema.parseAsync(req.body);
+      req.body = validatedData; // Actualizar con datos validados y transformados
       next();
     } catch (error) {
-      return res.status(400).json({
-        success: false,
-        message: "Error de validación",
-        errors: error.errors.map((err) => ({
-          campo: err.path.join("."),
-          mensaje: err.message,
-        })),
-      })
+      // Los errores de Zod vienen en el mensaje como JSON string
+      try {
+        const errorsArray = JSON.parse(error.message);
+        return res.status(400).json({
+          success: false,
+          message: "Error de validación",
+          errors: errorsArray.map((err) => ({
+            campo: err.path.join("."),
+            mensaje: err.message,
+          })),
+        });
+      } catch (parseError) {
+        // Si no se puede parsear, devolver error genérico
+        return res.status(400).json({
+          success: false,
+          message: "Error de validación",
+          error: error.message
+        });
+      }
     }
   }
 }
@@ -22,17 +34,29 @@ export const validateData = (schema) => {
 export const validateParams = (schema) => {
   return async (req, res, next) => {
     try {
-      await schema.parseAsync(req.params)
+      const validatedParams = await schema.parseAsync(req.params);
+      req.params = validatedParams; // Actualizar con datos validados y transformados
       next()
     } catch (error) {
-      return res.status(400).json({
-        success: false,
-        message: "Error de validación de parámetros",
-        errors: error.errors.map((err) => ({
-          campo: err.path.join("."),
-          mensaje: err.message,
-        })),
-      })
+      // Los errores de Zod vienen en el mensaje como JSON string
+      try {
+        const errorsArray = JSON.parse(error.message);
+        return res.status(400).json({
+          success: false,
+          message: "Error de validación de parámetros",
+          errors: errorsArray.map((err) => ({
+            campo: err.path.join("."),
+            mensaje: err.message,
+          })),
+        });
+      } catch (parseError) {
+        // Si no se puede parsear, devolver error genérico
+        return res.status(400).json({
+          success: false,
+          message: "Error de validación de parámetros",
+          error: error.message
+        });
+      }
     }
   }
 }

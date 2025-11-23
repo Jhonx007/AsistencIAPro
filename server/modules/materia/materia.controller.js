@@ -5,7 +5,7 @@ class MateriaController {
 
 
   // Obtener todas las materias
-  async getAllMateria(res) {
+  async getAllMateria(req, res) {
     try {
       const materias = await materiaService.getAllMateriaService()
       return res.status(200).json({
