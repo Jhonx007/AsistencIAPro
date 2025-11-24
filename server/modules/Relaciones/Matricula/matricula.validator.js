@@ -9,12 +9,12 @@ export const assignMatriculaSchema = z.object({
     .int('El ID del estudiante debe ser un número entero')
     .positive('El ID del estudiante debe ser positivo'),
   
-  id_seccion: z.number({
-    required_error: 'El ID de la sección es requerido',
-    invalid_type_error: 'El ID de la sección debe ser un número'
+  id_clase: z.number({
+    required_error: 'El ID de la clase es requerido',
+    invalid_type_error: 'El ID de la clase debe ser un número'
   })
-    .int('El ID de la sección debe ser un número entero')
-    .positive('El ID de la sección debe ser positivo')
+    .int('El ID de la clase debe ser un número entero')
+    .positive('El ID de la clase debe ser positivo')
 });
 
 // Schema para validar parámetros de ID en la URL

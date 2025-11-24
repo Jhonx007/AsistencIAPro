@@ -48,13 +48,13 @@ async function getMatriculaById(req, res) {
   }
 }
 
-// Para asignar un estudiante a una sección (crear matrícula)
+// Para asignar un estudiante a una clase (crear matrícula)
 async function assignMatricula(req, res) {
   try {
-    const { id_seccion, id_estudiante } = req.body;
+    const { id_clase, id_estudiante } = req.body;
 
     const matriculaCreated = await matriculaServices.assignMatricula({
-      id_seccion,
+      id_clase,
       id_estudiante
     });
 

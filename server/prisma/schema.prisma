@@ -39,7 +39,6 @@ model Seccion {
   created_at DateTime    @default(now()) @map("created_at")
   updated_at DateTime?   @updatedAt @map("updated_at")
 
-  Matricula  Matricula[]
   Reportes   Reporte[]
   clases     clases[]
 }
@@ -59,7 +58,7 @@ model Estudiante {
 model Matricula {
   id         Int         @id @default(autoincrement())
   id_estudiante Int
-  id_seccion    Int
+  id_clase    Int
   
   created_at    DateTime     @default(now())
   updated_at    DateTime?    @updatedAt
@@ -67,9 +66,9 @@ model Matricula {
   Asistencia    Asistencia[]
 
   Estudiante    Estudiante   @relation(fields: [id_estudiante], references: [id])
-  Seccion       Seccion      @relation(fields: [id_seccion], references: [id])
+  Clase       clases      @relation(fields: [id_clase], references: [id])
 
-  @@unique([id_estudiante, id_seccion])
+  @@unique([id_estudiante, id_clase])
 }
 
 model Asistencia {
@@ -114,6 +113,8 @@ model clases {
   Materia     Materia  @relation(fields: [materia_id], references: [id])
   Profesor    Profesor @relation(fields: [profesor_id], references: [id])
   Seccion     Seccion  @relation(fields: [seccion_id], references: [id])
+
+  Matriculas Matricula[]
 
   @@unique([profesor_id, materia_id, seccion_id])
 }

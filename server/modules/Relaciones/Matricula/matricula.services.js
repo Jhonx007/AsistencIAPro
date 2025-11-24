@@ -5,7 +5,13 @@ async function getMatriculas() {
   const matriculas = await prisma.matricula.findMany({
     include: {
       Estudiante: true,
-      Seccion: true
+      Clase: {
+        include: {
+          Profesor: true,
+          Materia: true,
+          Seccion: true
+        }
+      }
     }
   });
   return matriculas;
@@ -19,23 +25,35 @@ async function getMatriculaById(id) {
     },
     include: {
       Estudiante: true,
-      Seccion: true
+      Clase: {
+        include: {
+          Profesor: true,
+          Materia: true,
+          Seccion: true
+        }
+      }
     }
   });
 
   return matricula;
 }
 
-// Para asignar un estudiante a una sección (crear matrícula)
+// Para asignar un estudiante a una clase (crear matrícula)
 async function assignMatricula(data) {
   const matriculaCreated = await prisma.matricula.create({
     data: {
-      id_seccion: data.id_seccion,
+      id_clase: data.id_clase,
       id_estudiante: data.id_estudiante
     },
     include: {
       Estudiante: true,
-      Seccion: true
+      Clase: {
+        include: {
+          Profesor: true,
+          Materia: true,
+          Seccion: true
+        }
+      }
     }
   });
 
