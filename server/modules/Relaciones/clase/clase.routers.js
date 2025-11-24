@@ -1,47 +1,40 @@
 import { Router } from "express"
 import claseController from "./clase.controller.js"
 import {
-  createClaseSchema,
   assignClaseSchema,
-  idClaseSchema,
   profesorIdSchema,
+  idClaseSchema,
 } from "./clase.validator.js"
 import { validateData, validateParams } from "../../../middlewares/validator.js"
 
 const router = Router()
 
-// POST /api/clases/
+// POST /api/v1/clases/assing
 router.post(
-  "/",
-  validateData(createClaseSchema),
-  claseController.createClase
-)
-
-// POST /api/clases/assign
-router.post(
-  "/assign",
+  "/assing",
   validateData(assignClaseSchema),
   claseController.assignClase
 )
 
-// GET /api/clases
+// GET /api/v1/clases
 router.get(
   "/",
   claseController.getAllClases
 )
 
-// GET /api/clases/:id
-router.get(
-  "/:id",
-  validateParams(idClaseSchema),
-  claseController.getClaseById
-)
 
-// GET /api/clases/profesor/:profesorId
+// GET /api/v1/clases/profesor/:profesorId
 router.get(
   "/profesor/:profesorId",
   validateParams(profesorIdSchema),
   claseController.getClasesByProfesor
+)
+
+// DELETE /api/v1/clases/:id
+router.delete(
+  "/:id",
+  validateParams(idClaseSchema),
+  claseController.deleteClase
 )
 
 export default router

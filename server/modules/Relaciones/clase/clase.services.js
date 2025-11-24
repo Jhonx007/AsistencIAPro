@@ -1,41 +1,6 @@
 import prisma from "../../../config/prisma.js"
 
 class ClaseService {
-  // Crear una nueva clase (y sección)
-  async createClaseService(data) {
-    try {
-      const result = await prisma.$transaction(async (prisma) => {
-        // 1. Crear la Sección
-        const seccion = await prisma.seccion.create({
-          data: {
-            codigo: data.codigo,
-            semestre: data.semestre,
-          },
-        })
-
-        // 2. Crear la Clase asignando profesor, materia y la sección creada
-        const clase = await prisma.clases.create({
-          data: {
-            profesor_id: data.profesorId,
-            materia_id: data.materiaId,
-            seccion_id: seccion.id,
-            updated_at: new Date(),
-          },
-          include: {
-            Profesor: true,
-            Materia: true,
-            Seccion: true,
-          },
-        })
-
-        return { seccion, clase }
-      })
-
-      return result
-    } catch (error) {
-      throw new Error(`Error al crear clase y sección: ${error.message}`)
-    }
-  }
 
   // Asignar una sección existente a una clase (Profesor + Materia)
   async assignClaseService(data) {
@@ -92,30 +57,6 @@ class ClaseService {
     }
   }
 
-  // Obtener una clase por ID
-  async getByIdClaseService(id) {
-    try {
-      const clase = await prisma.clases.findUnique({
-        where: {
-          id: parseInt(id),
-        },
-        include: {
-          Profesor: true,
-          Materia: true,
-          Seccion: true,
-        },
-      })
-
-      if (!clase) {
-        throw new Error('Clase no encontrada')
-      }
-
-      return clase
-    } catch (error) {
-      throw new Error(`Error al obtener clase: ${error.message}`)
-    }
-  }
-
   // Obtener clases por profesor (Pivot)
   async getClasesByProfesorService(profesorId) {
     try {
@@ -131,6 +72,33 @@ class ClaseService {
       return clases
     } catch (error) {
       throw new Error(`Error al obtener clases del profesor: ${error.message}`)
+    }
+  }
+
+  // Eliminar una clase por ID
+  async deleteClaseService(id) {
+    try {
+      // Verificar que la clase exista
+      const clase = await prisma.clases.findUnique({
+        where: {
+          id: parseInt(id),
+        },
+      })
+
+      if (!clase) {
+        throw new Error('Clase no encontrada')
+      }
+
+      // Eliminar la clase
+      await prisma.clases.delete({
+        where: {
+          id: parseInt(id),
+        },
+      })
+
+      return { message: 'Clase eliminada exitosamente' }
+    } catch (error) {
+      throw new Error(`Error al eliminar clase: ${error.message}`)
     }
   }
 }
