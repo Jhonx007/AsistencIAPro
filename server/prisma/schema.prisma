@@ -8,14 +8,14 @@ datasource db {
 }
 
 model Profesor {
-  id               String             @id @db.Uuid
-  nombres          String
-  apellidos        String
-  cedula           String             @unique
-  telefono         String?
-  created_at       DateTime           @default(now())
-  updated_at       DateTime           @updatedAt
-  Profesor_Seccion Profesor_Seccion[]
+  id         String   @id @db.Uuid
+  nombres    String
+  apellidos  String
+  cedula     String   @unique
+  telefono   String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  clases     clases[]
 }
 
 model Materia {
@@ -23,20 +23,18 @@ model Materia {
   nombre     String    @unique
   created_at DateTime  @default(now()) @map("created_at")
   updated_at DateTime? @updatedAt @map("updated_at")
-  Seccion    Seccion[]
+  clases     clases[]
 }
 
 model Seccion {
-  id               Int                @id @default(autoincrement())
-  id_materia       Int                @map("id_materia")
-  codigo           String             @unique
-  semestre         String
-  created_at       DateTime           @default(now()) @map("created_at")
-  updated_at       DateTime?          @updatedAt @map("updated_at")
-  Matricula        Matricula[]
-  Profesor_Seccion Profesor_Seccion[]
-  Reportes         Reporte[]
-  Materia          Materia            @relation(fields: [id_materia], references: [id])
+  id         Int         @id @default(autoincrement())
+  codigo     String      @unique
+  semestre   String
+  created_at DateTime    @default(now()) @map("created_at")
+  updated_at DateTime?   @updatedAt @map("updated_at")
+  Matricula  Matricula[]
+  Reportes   Reporte[]
+  clases     clases[]
 }
 
 model Estudiante {
@@ -74,15 +72,6 @@ model Asistencia {
   @@unique([id_estudiante, id_seccion, fecha])
 }
 
-model Profesor_Seccion {
-  id_profesor String   @map("id_profesor") @db.Uuid
-  id_seccion  Int      @map("id_seccion")
-  Profesor    Profesor @relation(fields: [id_profesor], references: [id])
-  Seccion     Seccion  @relation(fields: [id_seccion], references: [id])
-
-  @@id([id_profesor, id_seccion])
-}
-
 model Reporte {
   id           Int      @id @default(autoincrement())
   id_seccion   Int      @map("id_seccion")
@@ -91,4 +80,18 @@ model Reporte {
   created_at   DateTime @default(now()) @map("created_at")
   updated_at   DateTime @updatedAt @map("updated_at")
   Seccion      Seccion  @relation(fields: [id_seccion], references: [id])
+}
+
+model clases {
+  id          Int      @id @default(autoincrement())
+  created_at  DateTime @default(now())
+  materia_id  Int
+  profesor_id String   @db.Uuid
+  seccion_id  Int
+  updated_at  DateTime
+  Materia     Materia  @relation(fields: [materia_id], references: [id])
+  Profesor    Profesor @relation(fields: [profesor_id], references: [id])
+  Seccion     Seccion  @relation(fields: [seccion_id], references: [id])
+
+  @@unique([profesor_id, materia_id, seccion_id])
 }
