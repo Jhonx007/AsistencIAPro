@@ -38,7 +38,12 @@ class MateriaService {
           id: parseInt(id),
         },
         include: {
-          Seccion: true, // Incluir las secciones relacionadas
+          clases: {
+            include: {
+              Profesor: true,
+              Seccion: true,
+            },
+          },
         },
       });
 
