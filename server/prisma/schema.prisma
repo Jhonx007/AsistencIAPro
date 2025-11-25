@@ -13,26 +13,32 @@ model Profesor {
   apellidos  String
   cedula     String   @unique
   telefono   String?
+
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
   clases     clases[]
 }
 
 model Materia {
   id         Int       @id @default(autoincrement())
   nombre     String    @unique
+
   created_at DateTime  @default(now()) @map("created_at")
   updated_at DateTime? @updatedAt @map("updated_at")
+
   clases     clases[]
+  Asistencias Asistencia[]
 }
 
 model Seccion {
   id         Int         @id @default(autoincrement())
   codigo     String      @unique
   semestre   String
+
   created_at DateTime    @default(now()) @map("created_at")
   updated_at DateTime?   @updatedAt @map("updated_at")
-  Matricula  Matricula[]
+
   Reportes   Reporte[]
   clases     clases[]
 }
@@ -42,34 +48,43 @@ model Estudiante {
   nombres    String
   apellidos  String
   cedula     String      @unique
+
   created_at DateTime    @default(now())
   updated_at DateTime    @updatedAt
+
   Matricula  Matricula[]
 }
 
 model Matricula {
+  id         Int         @id @default(autoincrement())
   id_estudiante Int
-  id_seccion    Int
+  id_clase    Int
+  
   created_at    DateTime     @default(now())
   updated_at    DateTime?    @updatedAt
-  Asistencia    Asistencia[]
-  Estudiante    Estudiante   @relation(fields: [id_estudiante], references: [id])
-  Seccion       Seccion      @relation(fields: [id_seccion], references: [id])
 
-  @@id([id_estudiante, id_seccion])
+  Asistencia    Asistencia[]
+
+  Estudiante    Estudiante   @relation(fields: [id_estudiante], references: [id])
+  Clase       clases      @relation(fields: [id_clase], references: [id])
+
+  @@unique([id_estudiante, id_clase])
 }
 
 model Asistencia {
-  id            Int       @id @default(autoincrement())
-  id_estudiante Int
-  id_seccion    Int
-  fecha         DateTime  @db.Date
-  es_presente   Boolean   @default(false) @map("es_presente")
-  created_at    DateTime  @default(now()) @map("created_at")
-  updated_at    DateTime  @updatedAt @map("updated_at")
-  Matricula     Matricula @relation(fields: [id_estudiante, id_seccion], references: [id_estudiante, id_seccion])
+  id              Int       @id @default(autoincrement())
+  id_matricula    Int
+  id_materia      Int
+  fecha_llegada   DateTime  @db.Date
+  es_presente     Boolean   @default(false) @map("es_presente")
 
-  @@unique([id_estudiante, id_seccion, fecha])
+  created_at      DateTime  @default(now()) @map("created_at")
+  updated_at      DateTime  @updatedAt @map("updated_at")
+
+  Matricula     Matricula   @relation(fields: [id_matricula], references: [id])
+  Materia       Materia     @relation(fields: [id_materia], references: [id])
+
+  @@unique([id_matricula, id_materia, fecha_llegada])
 }
 
 model Reporte {
@@ -77,21 +92,29 @@ model Reporte {
   id_seccion   Int      @map("id_seccion")
   fecha_inicio DateTime @map("fecha_inicio")
   fecha_fin    DateTime @map("fecha_fin")
+
   created_at   DateTime @default(now()) @map("created_at")
   updated_at   DateTime @updatedAt @map("updated_at")
+
   Seccion      Seccion  @relation(fields: [id_seccion], references: [id])
 }
 
 model clases {
   id          Int      @id @default(autoincrement())
+
   created_at  DateTime @default(now())
+
   materia_id  Int
   profesor_id String   @db.Uuid
   seccion_id  Int
+
   updated_at  DateTime
+  
   Materia     Materia  @relation(fields: [materia_id], references: [id])
   Profesor    Profesor @relation(fields: [profesor_id], references: [id])
   Seccion     Seccion  @relation(fields: [seccion_id], references: [id])
+
+  Matriculas Matricula[]
 
   @@unique([profesor_id, materia_id, seccion_id])
 }
