@@ -3,7 +3,6 @@ import seccionService from "./seccion.service.js"
 
 class SeccionController {
 
-  // Obtener todas las secciones
   async getAllSeccion(req, res) {
     try {
       const secciones = await seccionService.getAllSeccionService()
@@ -20,7 +19,6 @@ class SeccionController {
     }
   }
 
-  // Crear una sección
   async createSeccion(req, res) {
     try {
       const seccion = await seccionService.createSeccionService(req.body)
@@ -37,7 +35,6 @@ class SeccionController {
     }
   }
 
-  // Obtener una sección por ID
   async getByIdSeccion(req, res) {
     try {
       const seccion = await seccionService.getByIdSeccionService(req.params.id);
@@ -55,7 +52,6 @@ class SeccionController {
     }
   }
 
-  // Actualizar una sección
   async updateSeccion(req, res) {
     try {
       const seccion = await seccionService.updateSeccionService(
@@ -76,7 +72,6 @@ class SeccionController {
     }
   }
 
-  // Eliminar una sección
   async deleteSeccion(req, res) {
     try {
       const seccion = await seccionService.deleteSeccionService(req.params.id)

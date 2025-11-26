@@ -1,7 +1,7 @@
 import prisma from "../../config/prisma.js"
 
 class SeccionService {
-  // Crear una nueva sección
+
   async createSeccionService(data) {
     try {
       const seccion = await prisma.seccion.create({
@@ -16,7 +16,6 @@ class SeccionService {
     }
   }
 
-  // Obtener todas las secciones
   async getAllSeccionService() {
     try {
       const secciones = await prisma.seccion.findMany({
@@ -30,7 +29,6 @@ class SeccionService {
     }
   }
 
-  // Obtener una sección por ID
   async getByIdSeccionService(id) {
     try {
       const seccion = await prisma.seccion.findUnique({
@@ -40,16 +38,16 @@ class SeccionService {
         include: {
           clases: {
             include: {
-              Profesor: true, // Incluir los profesores asignados
-              Materia: true, // Incluir la materia de la clase
+              Profesor: true,
+              Materia: true,
             },
           },
           Matricula: {
             include: {
-              Estudiante: true, // Incluir los estudiantes matriculados
+              Estudiante: true,
             },
           },
-          Reportes: true, // Incluir los reportes de la sección
+          Reportes: true,
         },
       });
 
@@ -63,7 +61,6 @@ class SeccionService {
     }
   }
 
-  // Actualizar una sección
   async updateSeccionService(id, data) {
     try {
       const seccion = await prisma.seccion.update({
@@ -81,7 +78,6 @@ class SeccionService {
     }
   }
 
-  // Eliminar una sección
   async deleteSeccionService(id) {
     try {
       const seccion = await prisma.seccion.delete({

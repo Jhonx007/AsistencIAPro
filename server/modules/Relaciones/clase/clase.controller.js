@@ -35,7 +35,7 @@ class ClaseController {
 
   async getClasesByProfesor(req, res) {
     try {
-      const { profesorId } = req.params
+      const profesorId = req.user.id;
       const clases = await claseService.getClasesByProfesorService(profesorId)
       res.status(200).json({
         success: true,
