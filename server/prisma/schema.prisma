@@ -28,7 +28,6 @@ model Materia {
   updated_at DateTime? @updatedAt @map("updated_at")
 
   clases     clases[]
-  Asistencias Asistencia[]
 }
 
 model Seccion {
@@ -74,17 +73,15 @@ model Matricula {
 model Asistencia {
   id              Int       @id @default(autoincrement())
   id_matricula    Int
-  id_materia      Int
-  fecha_llegada   DateTime  @db.Date
+  fecha   DateTime  @default(now()) @db.Date
   es_presente     Boolean   @default(false) @map("es_presente")
 
   created_at      DateTime  @default(now()) @map("created_at")
   updated_at      DateTime  @updatedAt @map("updated_at")
 
   Matricula     Matricula   @relation(fields: [id_matricula], references: [id])
-  Materia       Materia     @relation(fields: [id_materia], references: [id])
 
-  @@unique([id_matricula, id_materia, fecha_llegada])
+  @@unique([id_matricula, fecha])
 }
 
 model Reporte {
