@@ -6,6 +6,7 @@ import seccionRouter from '../modules/Seccion/seccion.routers.js';
 import claseRouter from '../modules/Relaciones/clase/clase.routers.js';
 import matriculaRoutes from "../modules/Relaciones/Matricula/matricula.routes.js";
 import estudianteRoutes from '../modules/Estudiante/estudiante.routes.js';
+import asistenciaRoutes from "../modules/Asistencia/asistencia.routes.js";
 
 
 const router = Router();
@@ -16,5 +17,6 @@ router.use('/secciones', seccionRouter);
 router.use('/clases', claseRouter);
 router.use('/matricula', matriculaRoutes);
 router.use("/estudiantes", estudianteRoutes);
+router.use("/asistencia", asistenciaRoutes);
 
 export default router;
