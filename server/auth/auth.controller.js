@@ -8,7 +8,11 @@ async function login(email, password) {
   });
 
   if (error) {
-    throw new Error(`Error de autenticación: ${error.message}`);
+    return {
+      status: 401,
+      success: false,
+      message: `Error de autenticación: ${error.message}`
+    };
   }
   const profesor = await prisma.profesor.findUnique({
     where: {
@@ -17,18 +21,27 @@ async function login(email, password) {
   });
 
   if (!profesor) {
-    throw new Error("Usuario no autorizado. Solo profesores pueden acceder.");
+    return {
+      status: 401,
+      success: false,
+      message: "Usuario no autorizado. Solo profesores pueden acceder."
+    };
   }
 
   return {
-    token: data.session.access_token,
-    refreshToken: data.session.refresh_token,
-    profesor: {
-      id: profesor.id,
-      nombres: profesor.nombres,
-      apellidos: profesor.apellidos,
-      cedula: profesor.cedula,
-      telefono: profesor.telefono
+    status: 200,
+    success: true,
+    message: "Login exitoso",
+    data: {
+      token: data.session.access_token,
+      refreshToken: data.session.refresh_token,
+      profesor: {
+        id: profesor.id,
+        nombres: profesor.nombres,
+        apellidos: profesor.apellidos,
+        cedula: profesor.cedula,
+        telefono: profesor.telefono
+      }
     }
   };
 }
@@ -47,7 +60,11 @@ async function register(data) {
   });
 
   if (authError) {
-    throw new Error(`Error en Supabase Auth: ${authError.message}`);
+    return {
+      status: 400,
+      success: false,
+      message: `Error en Supabase Auth: ${authError.message}`
+    };
   }
   // Registrar en la tabla Profesor
   try {
@@ -67,23 +84,36 @@ async function register(data) {
     });
 
     if (sessionError) {
-      throw new Error(`Error al generar sesión: ${sessionError.message}`);
+      return {
+        status: 400,
+        success: false,
+        message: `Error al generar sesión: ${sessionError.message}`
+      };
     }
 
     return {
-      token: sessionData.session.access_token,
-      refreshToken: sessionData.session.refresh_token,
-      profesor: {
-        id: profesorCreated.id,
-        nombres: profesorCreated.nombres,
-        apellidos: profesorCreated.apellidos,
-        cedula: profesorCreated.cedula,
-        telefono: profesorCreated.telefono
+      status: 201,
+      success: true,
+      message: "Profesor registrado exitosamente",
+      data: {
+        token: sessionData.session.access_token,
+        refreshToken: sessionData.session.refresh_token,
+        profesor: {
+          id: profesorCreated.id,
+          nombres: profesorCreated.nombres,
+          apellidos: profesorCreated.apellidos,
+          cedula: profesorCreated.cedula,
+          telefono: profesorCreated.telefono
+        }
       }
     };
   } catch (dbError) {
     await supabase.auth.admin.deleteUser(authData.user.id);
-    throw new Error(`Error al crear profesor en BD: ${dbError.message}`);
+    return {
+      status: 400,
+      success: false,
+      message: `Error al crear profesor en BD: ${dbError.message}`
+    };
   }
 }
 

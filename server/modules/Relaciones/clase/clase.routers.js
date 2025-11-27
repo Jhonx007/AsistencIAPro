@@ -20,7 +20,7 @@ router.get(
 )
 
 router.get(
-  "/mis-clases",
+  "/myclasses",
   claseController.getClasesByProfesor
 )
 
