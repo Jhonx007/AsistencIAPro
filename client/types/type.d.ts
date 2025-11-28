@@ -2,6 +2,22 @@ import { TextInputProps, TouchableOpacityProps } from "react-native";
 
 import { Control } from "react-hook-form";
 
+export interface User {
+  id: string;
+  nombres: string;
+  apellidos: string;
+  cedula: string;
+  telefono: string | null;
+}
+
+export interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (token: string, refreshToken: string, userData: User) => Promise<void>;
+  logout: () => Promise<void>;
+}
+
 export interface InputFieldProps extends TextInputProps {
   name: string;
   control: Control<any>;
@@ -19,4 +35,5 @@ interface ButtonProps extends TouchableOpacityProps {
     IconLeft?: React.ComponentType<any>;
     IconRight?: React.ComponentType<any>;
     buttonStyles?: string;
+    isLoading?: boolean;
 }
