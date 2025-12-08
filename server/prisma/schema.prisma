@@ -75,6 +75,8 @@ model Asistencia {
   id_matricula    Int
   fecha   DateTime  @default(now()) @db.Date
   es_presente     Boolean   @default(false) @map("es_presente")
+  foto_url        String?  // Opcional: URL de la foto
+  face_descriptor Json?    // Obligatorio: Aquí se guarda el vector facial
 
   created_at      DateTime  @default(now()) @map("created_at")
   updated_at      DateTime  @updatedAt @map("updated_at")
