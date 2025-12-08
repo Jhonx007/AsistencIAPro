@@ -13,16 +13,30 @@ import {
   IconPassword,
   IconUser,
 } from "@/components/Icons";
+import { registerService } from "@/services/auth.service";
+import { useAuth } from "@/context/AuthContext";
+import { router } from "expo-router";
 
 function Register() {
+  const { login } = useAuth();
   const swiperRef = useRef<Swiper>(null);
   const { control, handleSubmit, trigger } = useForm<RegisterSchemaType>({
     resolver: zodResolver(RegisterSchema),
     mode: "onChange",
   });
 
-  const onSubmit = (data: RegisterSchemaType) => {
-    console.log(data);
+  const onSubmit = async (data: RegisterSchemaType) => {
+    const response = await registerService(data);
+    if (response?.success) {
+      // La respuesta tiene estructura: response.data.data.{token, refreshToken, profesor}
+      const { token, refreshToken, profesor } = response.data.data;
+
+      // Guardar tokens y datos del usuario
+      await login(token, refreshToken, profesor);
+
+      // Navegar a la pantalla protegida
+      router.replace("/(protected)/home");
+    }
   };
 
   return (
@@ -41,21 +55,21 @@ function Register() {
           </Text>
           <View className="gap-5 flex-1">
             <InputField
-              name="name"
+              name="nombres"
               control={control}
               label="Nombre"
               placeholder="Escribe tu nombre"
               icon={<IconUser />}
             />
             <InputField
-              name="lastName"
+              name="apellidos"
               control={control}
               label="Apellido"
               placeholder="Escribe tu apellido"
               icon={<IconUser />}
             />
             <InputField
-              name="identity"
+              name="cedula"
               control={control}
               label="Cédula"
               placeholder="Escribe tu cédula"
@@ -67,7 +81,7 @@ function Register() {
             title="Siguiente"
             buttonStyles="mb-5"
             onPress={async () => {
-              const isValid = await trigger(["name", "lastName", "identity"]);
+              const isValid = await trigger(["nombres", "apellidos", "cedula"]);
               if (isValid) swiperRef.current?.scrollBy(1);
             }}
           />
@@ -78,14 +92,14 @@ function Register() {
           </Text>
           <View className="gap-5 flex-1">
             <InputField
-              name="email"
+              name="correo"
               control={control}
               label="Correo"
               placeholder="Escribe tu correo"
               icon={<IconEmail />}
             />
             <InputField
-              name="password"
+              name="contraseña"
               control={control}
               label="Contraseña"
               placeholder="Escribe tu contraseña"
@@ -93,7 +107,7 @@ function Register() {
               secureTextEntry={true}
             />
             <InputField
-              name="confirmPassword"
+              name="confirmarContraseña"
               control={control}
               label="Confirmar contraseña"
               placeholder="Confirma tu contraseña"

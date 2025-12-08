@@ -4,7 +4,11 @@ class ClaseController {
 
   async assignClase(req, res) {
     try {
-      const data = await claseService.assignClaseService(req.body)
+      const profesorId = req.user.id; // Extraer del token de autenticación
+      const data = await claseService.assignClaseService({
+        ...req.body,
+        profesorId
+      })
       res.status(201).json({
         success: true,
         message: "asignacion exitosa",
@@ -35,7 +39,7 @@ class ClaseController {
 
   async getClasesByProfesor(req, res) {
     try {
-      const { profesorId } = req.params
+      const profesorId = req.user.id;
       const clases = await claseService.getClasesByProfesorService(profesorId)
       res.status(200).json({
         success: true,

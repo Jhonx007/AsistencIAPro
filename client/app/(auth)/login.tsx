@@ -3,18 +3,39 @@ import Logo from "@/components/Logo";
 import { LoginSchema, LoginSchemaType } from "@/schemas/authSchemas";
 import Feather from "@expo/vector-icons/Feather";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { useForm } from "react-hook-form";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { loginService } from "@/services/auth.service";
+import { useAuth } from "@/context/AuthContext";
+import CustomButton from "@/components/CustomButton";
+import { useState } from "react";
 
 function Login() {
+  const { login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+
   const { control, handleSubmit } = useForm<LoginSchemaType>({
     resolver: zodResolver(LoginSchema),
   });
 
-  const onSubmit = (data: LoginSchemaType) => {
-    console.log(data);
+  const onSubmit = async (data: LoginSchemaType) => {
+    try {
+      setIsLoading(true);
+
+      const response = await loginService(data);
+
+      if (response?.success) {
+        const { token, refreshToken, profesor } = response.data.data;
+        await login(token, refreshToken, profesor);
+        router.replace("/(protected)/home");
+      }
+    } catch (error) {
+      console.error("Error en login:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -39,7 +60,7 @@ function Login() {
         label="Contraseña"
         placeholder="Escribe tu contraseña"
         secureTextEntry={true}
-        icon={<Feather name="lock" size={22} color="gray" className="mr-3" />}
+        icon={<Feather name="lock" size={22} color="gray" />}
       />
       <Text className="text-lg text-gray-200">
         ¿No tienes una cuenta?{" "}
@@ -47,14 +68,11 @@ function Login() {
           Registrate
         </Link>
       </Text>
-      <TouchableOpacity
-        className="bg-sky-600 p-4 rounded-lg"
+      <CustomButton
+        title="Iniciar Sesión"
         onPress={handleSubmit(onSubmit)}
-      >
-        <Text className="text-center text-white text-lg font-semibold">
-          Iniciar Sesión
-        </Text>
-      </TouchableOpacity>
+        isLoading={isLoading}
+      />
     </SafeAreaView>
   );
 }

@@ -2,10 +2,8 @@ import prisma from "../../../config/prisma.js"
 
 class ClaseService {
 
-  // Asignar una sección existente a una clase (Profesor + Materia)
   async assignClaseService(data) {
     try {
-      // Verificar que la sección exista
       const seccion = await prisma.seccion.findUnique({
         where: { id: data.seccionId },
       })
@@ -14,7 +12,6 @@ class ClaseService {
         throw new Error("La sección especificada no existe")
       }
 
-      // Crear la relación en Clases
       const clase = await prisma.clases.create({
         data: {
           profesor_id: data.profesorId,
@@ -38,7 +35,6 @@ class ClaseService {
     }
   }
 
-  // Obtener todas las clases
   async getAllClaseService() {
     try {
       const clases = await prisma.clases.findMany({
@@ -57,7 +53,6 @@ class ClaseService {
     }
   }
 
-  // Obtener clases por profesor (Pivot)
   async getClasesByProfesorService(profesorId) {
     try {
       const clases = await prisma.clases.findMany({
@@ -75,10 +70,8 @@ class ClaseService {
     }
   }
 
-  // Eliminar una clase por ID
   async deleteClaseService(id) {
     try {
-      // Verificar que la clase exista
       const clase = await prisma.clases.findUnique({
         where: {
           id: parseInt(id),
@@ -89,7 +82,6 @@ class ClaseService {
         throw new Error('Clase no encontrada')
       }
 
-      // Eliminar la clase
       await prisma.clases.delete({
         where: {
           id: parseInt(id),

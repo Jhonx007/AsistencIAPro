@@ -43,11 +43,6 @@ export const profesorIdSchema = z.object({
 })
 
 export const assignClaseSchema = z.object({
-  profesorId: z
-    .string({
-      required_error: "El ID del profesor es requerido",
-    })
-    .uuid("El ID del profesor debe ser un UUID válido"),
   materiaId: z
     .number({
       required_error: "El ID de la materia es requerido",
