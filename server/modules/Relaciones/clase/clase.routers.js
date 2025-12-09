@@ -24,6 +24,12 @@ router.get(
   claseController.getClasesByProfesor
 )
 
+// Nueva ruta: Obtener clases agrupadas por materia
+router.get(
+  "/myclasses/grouped",
+  claseController.getClasesByProfesorGrouped
+)
+
 router.delete(
   "/:id",
   validateParams(idClaseSchema),
