@@ -93,6 +93,64 @@ class ClaseService {
       throw new Error(`Error al eliminar clase: ${error.message}`)
     }
   }
+
+  /**
+   * Obtiene las clases de un profesor agrupadas por materia
+   * Ejemplo: Si das Matemática 2 en D1 y D2, retorna:
+   * {
+   *   "Matemática 2": {
+   *     materia_id: 1,
+   *     secciones: [
+   *       { seccion_id: 1, codigo: "D1", semestre: "2024-1", clase_id: 10 },
+   *       { seccion_id: 2, codigo: "D2", semestre: "2024-1", clase_id: 11 }
+   *     ]
+   *   }
+   * }
+   */
+  async getClasesByProfesorGroupedService(profesorId) {
+    try {
+      // Obtener todas las clases del profesor con sus relaciones
+      const clases = await prisma.clases.findMany({
+        where: {
+          profesor_id: profesorId,
+        },
+        include: {
+          Materia: true,
+          Seccion: true,
+        },
+        orderBy: [
+          { Materia: { nombre: 'asc' } },
+          { Seccion: { codigo: 'asc' } }
+        ]
+      })
+
+      // Agrupar por materia
+      const grouped = {}
+
+      for (const clase of clases) {
+        const materiaNombre = clase.Materia.nombre
+
+        // Si la materia no existe en el objeto, crearla
+        if (!grouped[materiaNombre]) {
+          grouped[materiaNombre] = {
+            secciones: []
+          }
+        }
+
+        // Agregar la sección a la materia
+        grouped[materiaNombre].secciones.push({
+          seccion_id: clase.Seccion.id,
+          codigo: clase.Seccion.codigo,
+          semestre: clase.Seccion.semestre,
+
+        })
+      }
+
+      return grouped
+    } catch (error) {
+      throw new Error(`Error al obtener clases agrupadas del profesor: ${error.message}`)
+    }
+  }
 }
 
 export default new ClaseService()

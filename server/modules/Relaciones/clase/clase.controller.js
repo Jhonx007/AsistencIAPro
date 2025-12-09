@@ -68,6 +68,26 @@ class ClaseController {
       })
     }
   }
+
+  /**
+   * Obtiene las clases del profesor agrupadas por materia
+   * Retorna un JSON donde cada materia tiene sus secciones
+   */
+  async getClasesByProfesorGrouped(req, res) {
+    try {
+      const profesorId = req.user.id;
+      const clasesGrouped = await claseService.getClasesByProfesorGroupedService(profesorId)
+      res.status(200).json({
+        success: true,
+        data: clasesGrouped
+      })
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message
+      })
+    }
+  }
 }
 
 export default new ClaseController()
