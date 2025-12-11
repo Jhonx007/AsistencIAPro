@@ -1,5 +1,6 @@
 import axios from "axios";
 import { Alert } from "react-native";
+import { getAccessToken } from "./storage";
 
 const backendURL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -17,10 +18,22 @@ const axiosInstance = axios.create({
   timeout: 10000, // 10 segundos de timeout
 });
 
-// Interceptor para logging (útil para debug)
+// Interceptor para agregar token y logging
 axiosInstance.interceptors.request.use(
-  (config) => {
-    console.log(`📡 ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+  async (config) => {
+    // Obtener el token del almacenamiento seguro
+    const token = await getAccessToken();
+
+    console.log("🚀 Token:", token);
+
+    // Si hay token, agregarlo al header Authorization
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    console.log(
+      `📡 ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`
+    );
     return config;
   },
   (error) => {
@@ -37,8 +50,13 @@ axiosInstance.interceptors.response.use(
       Alert.alert("Error", error.response.data.message);
     } else if (error.request) {
       // No hubo respuesta del servidor
-      console.error("❌ Sin respuesta del servidor. Verifica que el backend esté corriendo.");
-      Alert.alert("Error", "Sin respuesta del servidor. Verifica que el backend esté corriendo.");
+      console.error(
+        "❌ Sin respuesta del servidor. Verifica que el backend esté corriendo."
+      );
+      Alert.alert(
+        "Error",
+        "Sin respuesta del servidor. Verifica que el backend esté corriendo."
+      );
     } else {
       console.error("❌ Error:", error.message);
       Alert.alert("Error", error.message);
