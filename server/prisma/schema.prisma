@@ -38,7 +38,6 @@ model Seccion {
   created_at DateTime    @default(now()) @map("created_at")
   updated_at DateTime?   @updatedAt @map("updated_at")
 
-  Reportes   Reporte[]
   clases     clases[]
 }
 
@@ -88,14 +87,25 @@ model Asistencia {
 
 model Reporte {
   id           Int      @id @default(autoincrement())
-  id_seccion   Int      @map("id_seccion")
-  fecha_inicio DateTime @map("fecha_inicio")
-  fecha_fin    DateTime @map("fecha_fin")
+  id_clase     Int      @map("id_clase")
+  
+  // Fecha del reporte (fecha de la clase)
+  fecha        DateTime @map("fecha") @db.Date
+  
+  // Título o descripción del reporte (ej: "Clase del 11/12/2025")
+  titulo       String?
+  
+  // Estadísticas del reporte
+  total_estudiantes Int? @map("total_estudiantes")
+  total_presentes   Int? @map("total_presentes")
+  total_ausentes    Int? @map("total_ausentes")
 
   created_at   DateTime @default(now()) @map("created_at")
   updated_at   DateTime @updatedAt @map("updated_at")
 
-  Seccion      Seccion  @relation(fields: [id_seccion], references: [id])
+  Clase        clases   @relation(fields: [id_clase], references: [id])
+  
+  @@unique([id_clase, fecha])
 }
 
 model clases {
@@ -113,7 +123,8 @@ model clases {
   Profesor    Profesor @relation(fields: [profesor_id], references: [id])
   Seccion     Seccion  @relation(fields: [seccion_id], references: [id])
 
-  Matriculas Matricula[]
+  Matriculas  Matricula[]
+  Reportes    Reporte[]
 
   @@unique([profesor_id, materia_id, seccion_id])
 }

@@ -88,6 +88,39 @@ class ClaseController {
       })
     }
   }
+
+  async getEstudiantesByClase(req, res) {
+    try {
+      const { id } = req.params;
+      const profesorId = req.user.id; // ID del profesor autenticado
+
+      const estudiantes = await claseService.getEstudiantesByClaseService(id, profesorId);
+      
+      res.status(200).json({
+        success: true,
+        data: estudiantes
+      });
+    } catch (error) {
+      // Manejo de errores específicos
+      if (error.message === 'No tienes permiso para acceder a esta clase') {
+        return res.status(403).json({
+          success: false,
+          message: error.message
+        });
+      }
+      if (error.message === 'Clase no encontrada') {
+        return res.status(404).json({
+          success: false,
+          message: error.message
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
 }
 
 export default new ClaseController()

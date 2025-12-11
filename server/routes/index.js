@@ -9,6 +9,7 @@ import matriculaRoutes from "../modules/Relaciones/Matricula/matricula.routes.js
 import estudianteRoutes from '../modules/Estudiante/estudiante.routes.js';
 import { verifyToken } from "../middlewares/auth.middleware.js";
 import asistenciaRoutes from "../modules/Asistencia/asistencia.routes.js";
+import reporteRoutes from "../modules/Reporte/reporte.routes.js";
 
 const router = Router();
 
@@ -23,5 +24,6 @@ router.use('/matricula', verifyToken, matriculaRoutes);
 router.use('/estudiantes', verifyToken, estudianteRoutes);
 router.use("/profesores", verifyToken, profesorRoutes);
 router.use("/asistencia", verifyToken, asistenciaRoutes);
+router.use("/reportes", verifyToken, reporteRoutes);
 
 export default router;
