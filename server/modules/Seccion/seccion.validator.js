@@ -1,12 +1,6 @@
 import { z } from "zod"
 
 export const createSeccionSchema = z.object({
-  id_materia: z
-    .number({
-      required_error: "El ID de la materia es requerido",
-    })
-    .int("El ID de la materia debe ser un número entero")
-    .positive("El ID de la materia debe ser mayor a 0"),
   codigo: z
     .string({
       required_error: "El código es requerido",

@@ -142,13 +142,56 @@ class ClaseService {
           seccion_id: clase.Seccion.id,
           codigo: clase.Seccion.codigo,
           semestre: clase.Seccion.semestre,
-
+          clase_id: clase.id // ID de la clase para usar en endpoints
         })
       }
 
       return grouped
     } catch (error) {
       throw new Error(`Error al obtener clases agrupadas del profesor: ${error.message}`)
+    }
+  }
+
+  async getEstudiantesByClaseService(claseId, profesorId) {
+    try {
+      // 1. Verificar primero si la clase existe y pertenece al profesor
+      const clase = await prisma.clases.findUnique({
+        where: {
+          id: parseInt(claseId)
+        }
+      });
+
+      if (!clase) {
+        throw new Error('Clase no encontrada');
+      }
+
+      if (clase.profesor_id !== profesorId) {
+        throw new Error('No tienes permiso para acceder a esta clase'); // Mensaje de seguridad
+      }
+
+      // 2. Si es el dueño, buscamos los estudiantes
+      const matriculas = await prisma.matricula.findMany({
+        where: {
+          id_clase: parseInt(claseId)
+        },
+        include: {
+          Estudiante: true
+        },
+        orderBy: {
+          Estudiante: {
+            apellidos: 'asc'
+          }
+        }
+      });
+
+      // Mapear para devolver una estructura limpia
+      return matriculas.map(m => ({
+        id_matricula: m.id,
+        estudiante: m.Estudiante
+      }));
+    } catch (error) {
+      // Propagar el error tal cual para manejar el 403 en el controlador si es necesario
+      throw error;
     }
   }
 }
