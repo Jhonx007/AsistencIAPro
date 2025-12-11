@@ -10,6 +10,33 @@ export interface User {
   telefono: string | null;
 }
 
+export interface Subject {
+  name: string;
+  secciones: Section[];
+}
+
+export interface Section {
+  seccion_id: number;
+  codigo: string;
+  semestre: string;
+}
+
+// API Response types
+export interface SubjectData {
+  secciones: Section[];
+}
+
+export interface SubjectsApiResponse {
+  success: boolean;
+  data: {
+    [key: string]: SubjectData;
+  };
+}
+
+export interface CardSubjectProps {
+  item: Subject;
+}
+
 export interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
@@ -31,9 +58,9 @@ export interface InputFieldProps extends TextInputProps {
 }
 
 interface ButtonProps extends TouchableOpacityProps {
-    title: string;
-    IconLeft?: React.ComponentType<any>;
-    IconRight?: React.ComponentType<any>;
-    buttonStyles?: string;
-    isLoading?: boolean;
+  title: string;
+  IconLeft?: React.ComponentType<any>;
+  IconRight?: React.ComponentType<any>;
+  buttonStyles?: string;
+  isLoading?: boolean;
 }

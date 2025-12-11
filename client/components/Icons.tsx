@@ -1,5 +1,7 @@
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 export function IconUser() {
   return <Feather name="user" size={22} color="gray" />;
@@ -23,4 +25,36 @@ export function IconEye() {
 
 export function IconEyeOff() {
   return <Feather name="eye-off" size={22} color="gray" />;
+}
+
+export function IconBook() {
+  return <Feather name="book-open" size={22} color="#3b82f6" />;
+}
+
+export function IconRigthArrow() {
+  return <MaterialIcons name="keyboard-arrow-right" size={24} color="gray" />;
+}
+
+export function IconDownArrow() {
+  return <MaterialIcons name="keyboard-arrow-down" size={24} color="gray" />;
+}
+
+export function IconLogout() {
+  return <MaterialIcons name="logout" size={26} color="white" />;
+}
+
+export function IconSadTear({
+  size,
+  color = "gray",
+}: {
+  size: number;
+  color?: string;
+}) {
+  return (
+    <MaterialCommunityIcons
+      name="emoticon-sad-outline"
+      size={size}
+      color={color}
+    />
+  );
 }

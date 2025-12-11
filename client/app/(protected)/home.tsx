@@ -1,56 +1,96 @@
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  ActivityIndicator,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState } from "react";
+import { getSubjects } from "@/services/subject.service";
+import { CardSubject } from "@/components/CardSubject";
+import { Subject, SubjectData } from "@/types/type";
+import { Stack } from "expo-router";
+import { IconLogout } from "@/components/Icons";
+import EmptyState from "@/components/EmptyState";
 
 function Home() {
   const { user, logout } = useAuth();
+  const [sections, setSections] = useState<Subject[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchSubjects() {
+      try {
+        const response = await getSubjects();
+        const subjectsArray = Object.entries(response.data).map(
+          ([name, data]: [string, SubjectData]): Subject => ({
+            name,
+            secciones: data.secciones,
+          })
+        );
+        setSections(subjectsArray);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSubjects();
+  }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-900">
-      <ScrollView className="px-4 py-6">
-        <Text className="text-3xl font-bold text-white mb-6">
-          Bienvenido, Profesor
-        </Text>
+    <View className="flex-1 bg-gray-900 px-3">
+      <Stack.Screen
+        options={{
+          headerTitle: "Mis Materias",
+          headerRight: () => (
+            <TouchableOpacity onPress={logout}>
+              <IconLogout />
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      <TouchableOpacity
+        className="absolute bottom-8 right-6 bg-sky-600 size-16 rounded-full items-center justify-center shadow-lg z-10"
+        onPress={() => {
+          console.log("Crear nueva materia");
+        }}
+      >
+        <Text className="text-white text-4xl">+</Text>
+      </TouchableOpacity>
 
-        {user && (
-          <View className="bg-gray-800 p-4 rounded-lg mb-6">
-            <Text className="text-xl font-semibold text-sky-500 mb-3">
-              Información del Profesor
-            </Text>
-            <View className="gap-2">
-              <Text className="text-white text-lg">
-                <Text className="font-semibold">Nombres:</Text> {user.nombres}
-              </Text>
-              <Text className="text-white text-lg">
-                <Text className="font-semibold">Apellidos:</Text>{" "}
-                {user.apellidos}
-              </Text>
-              <Text className="text-white text-lg">
-                <Text className="font-semibold">Cédula:</Text> {user.cedula}
-              </Text>
-              {user.telefono && (
-                <Text className="text-white text-lg">
-                  <Text className="font-semibold">Teléfono:</Text>{" "}
-                  {user.telefono}
-                </Text>
-              )}
-              <Text className="text-gray-400 text-sm mt-2">
-                <Text className="font-semibold">ID:</Text> {user.id}
-              </Text>
-            </View>
-          </View>
-        )}
-
-        <TouchableOpacity
-          className="bg-red-600 p-4 rounded-lg"
-          onPress={logout}
-        >
-          <Text className="text-center text-white text-lg font-semibold">
-            Cerrar Sesión
+      {loading ? (
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#0ea5e9" />
+          <Text className="text-white text-lg mt-2">Cargando materias...</Text>
+        </View>
+      ) : sections.length === 0 ? (
+        <View className="flex-1">
+          <Text className="text-3xl font-bold text-white mb-8 mt-5">
+            Bienvenido, Prof. {user?.nombres}
           </Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
+          <EmptyState
+            title="No hay materias creadas"
+            description="Crea una materia para comenzar a registrar tus clases."
+          />
+        </View>
+      ) : (
+        <FlatList
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={() => (
+            <Text className="text-3xl font-bold text-white mb-6 mt-5">
+              Bienvenido, Prof. {user?.nombres}
+            </Text>
+          )}
+          data={sections}
+          keyExtractor={(item) => item.name}
+          renderItem={({ item }) => (
+            <CardSubject name={item.name} secciones={item.secciones} />
+          )}
+        />
+      )}
+    </View>
   );
 }
 
