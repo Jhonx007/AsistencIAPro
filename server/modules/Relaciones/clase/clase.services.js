@@ -142,7 +142,7 @@ class ClaseService {
           seccion_id: clase.Seccion.id,
           codigo: clase.Seccion.codigo,
           semestre: clase.Seccion.semestre,
-
+          clase_id: clase.id // ID de la clase para usar en endpoints
         })
       }
 
