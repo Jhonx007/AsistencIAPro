@@ -2,6 +2,7 @@ import { Router } from "express";
 import estudianteController from "./estudiante.controller.js";
 import { validateData, validateParams } from "../../middlewares/validator.js";
 import { createEstudianteSchema, updateEstudianteSchema, idParamSchema } from "./estudiante.validator.js";
+import upload from "../../middlewares/upload.middleware.js";
 
 const router = Router();
 
@@ -19,5 +20,8 @@ router.put("/:id", validateParams(idParamSchema), validateData(updateEstudianteS
 
 // DELETE /estudiantes/:id - Eliminar un estudiante
 router.delete("/:id", validateParams(idParamSchema), estudianteController.deleteEstudiante);
+
+// PATCH /estudiantes/:id/enroll-face - Actualizar estudiante con datos biométricos
+router.patch("/:id/enroll-face", validateParams(idParamSchema), upload.single('photo'), estudianteController.enrollFace);
 
 export default router;

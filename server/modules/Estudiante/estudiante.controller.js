@@ -11,10 +11,10 @@ async function getAll(req, res) {
     });
   } catch (error) {
     console.error('Error al obtener estudiantes:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       success: false,
       error: 'Error al obtener estudiantes',
-      message: error.message 
+      message: error.message
     });
   }
 }
@@ -124,10 +124,63 @@ async function deleteEstudiante(req, res) {
   }
 }
 
+/**
+ * PATCH /estudiantes/:id/enroll-face
+ * Actualiza un estudiante existente con datos biométricos
+ */
+async function enrollFace(req, res) {
+  try {
+    const { id } = req.params;
+
+    // Verificar que se subió una imagen
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No se proporcionó ninguna imagen'
+      });
+    }
+
+    // Delegar lógica al servicio
+    const result = await estudianteService.enrollFace(
+      parseInt(id),
+      req.file.buffer
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Rostro registrado exitosamente',
+      data: {
+        id: result.estudiante.id,
+        nombres: result.estudiante.nombres,
+        apellidos: result.estudiante.apellidos,
+        confidence: result.confidence
+      }
+    });
+  } catch (error) {
+    console.error('Error al registrar rostro:', error);
+
+    // Error específico si no se detectó rostro
+    if (error.message.includes('No se detectó ningún rostro')) {
+      return res.status(400).json({
+        success: false,
+        error: 'No se detectó ningún rostro en la imagen',
+        message: 'Por favor, asegúrate de que la imagen contenga un rostro visible'
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      error: 'Error al registrar rostro',
+      message: error.message
+    });
+  }
+}
+
 export default {
   getAll,
   getById,
   create,
   update,
-  deleteEstudiante
+  deleteEstudiante,
+  enrollFace
 };
