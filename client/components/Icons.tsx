@@ -58,3 +58,15 @@ export function IconSadTear({
     />
   );
 }
+
+export function IconFile() {
+  return <Feather name="file-text" size={24} color="gray" />;
+}
+
+export function IconMoreVertical() {
+  return <Feather name="more-vertical" size={24} color="white" />;
+}
+
+export function IconUsers() {
+  return <Feather name="users" size={20} color="white" />;
+}

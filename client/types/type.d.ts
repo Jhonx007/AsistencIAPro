@@ -19,9 +19,9 @@ export interface Section {
   seccion_id: number;
   codigo: string;
   semestre: string;
+  clase_id: number;
 }
 
-// API Response types
 export interface SubjectData {
   secciones: Section[];
 }
@@ -31,6 +31,24 @@ export interface SubjectsApiResponse {
   data: {
     [key: string]: SubjectData;
   };
+}
+
+export interface ReportApiResponse {
+  success: boolean;
+  data: Report[];
+}
+
+export interface Report {
+  id: number;
+  id_clase: number;
+  fecha: string;
+  titulo: string;
+  total_estudiantes: number;
+  total_presentes: number;
+  total_ausentes: number;
+  created_at: Date;
+  updated_at: Date;
+  Clase: string[];
 }
 
 export interface CardSubjectProps {

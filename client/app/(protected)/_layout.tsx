@@ -15,14 +15,7 @@ export default function ProtectedLayout() {
             fontWeight: "bold",
           },
         }}
-      >
-        <Stack.Screen
-          name="[id]"
-          options={{
-            title: "Detalle de Materia",
-          }}
-        />
-      </Stack>
+      ></Stack>
     </SafeAreaView>
   );
 }
