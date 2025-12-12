@@ -99,11 +99,13 @@ model clases {
   profesor_id String      @db.Uuid
   seccion_id  Int
   updated_at  DateTime
-  Matriculas  Matricula[]
-  Reporte     Reporte[]
+  
   Materia     Materia     @relation(fields: [materia_id], references: [id])
   Profesor    Profesor    @relation(fields: [profesor_id], references: [id])
   Seccion     Seccion     @relation(fields: [seccion_id], references: [id])
+
+  Matriculas  Matricula[]
+  Reportes    Reporte[]
 
   @@unique([profesor_id, materia_id, seccion_id])
 }

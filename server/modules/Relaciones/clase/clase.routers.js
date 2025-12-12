@@ -36,4 +36,10 @@ router.delete(
   claseController.deleteClase
 )
 
+router.get(
+  "/:id/estudiantes",
+  validateParams(idClaseSchema),
+  claseController.getEstudiantesByClase
+)
+
 export default router
