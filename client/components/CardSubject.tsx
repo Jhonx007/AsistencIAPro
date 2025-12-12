@@ -31,7 +31,9 @@ export function CardSubject({ name, secciones }: Subject) {
           {secciones.map((seccion) => (
             <TouchableOpacity
               onPress={() => {
-                router.push(`/${seccion.seccion_id}`);
+                router.push(
+                  `/section/${seccion.clase_id}?materia=${encodeURIComponent(name)}&seccion=${encodeURIComponent(seccion.codigo)}`
+                );
               }}
               key={seccion.seccion_id}
               className={`p-5 border-t border-gray-700`}

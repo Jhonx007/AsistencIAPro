@@ -8,8 +8,6 @@ if (!backendURL) {
   console.error("❌ ERROR: EXPO_PUBLIC_BACKEND_URL no está definida en .env");
 }
 
-console.log("🔗 Backend URL:", backendURL);
-
 const axiosInstance = axios.create({
   baseURL: backendURL,
   headers: {
@@ -43,7 +41,9 @@ axiosInstance.interceptors.request.use(
 
 // Interceptor para manejar errores
 axiosInstance.interceptors.response.use(
+  // Si la respuesta es exitosa
   (response) => response,
+  // Si la respuesta es un error
   (error) => {
     if (error.response) {
       // El servidor respondió con un código de error

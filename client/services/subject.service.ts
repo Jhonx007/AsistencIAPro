@@ -1,5 +1,5 @@
 import axiosInstance from "@/utils/axios";
-import { SubjectsApiResponse } from "@/types/type";
+import { ReportApiResponse, SubjectsApiResponse } from "@/types/type";
 
 export async function getSubjects(): Promise<SubjectsApiResponse> {
   try {
@@ -9,6 +9,22 @@ export async function getSubjects(): Promise<SubjectsApiResponse> {
     return response.data;
   } catch (error) {
     console.error("Error al obtener las materias:", error);
+    throw error;
+  }
+}
+
+export async function getReportPrevious({
+  id,
+}: {
+  id: string;
+}): Promise<ReportApiResponse> {
+  try {
+    const response = await axiosInstance.get<ReportApiResponse>(
+      `/reportes/clase/${id}`
+    );
+    return response.data;
+  } catch (error) {
+    console.log(error);
     throw error;
   }
 }

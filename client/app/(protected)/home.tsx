@@ -61,9 +61,16 @@ function Home() {
       </TouchableOpacity>
 
       {loading ? (
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#0ea5e9" />
-          <Text className="text-white text-lg mt-2">Cargando materias...</Text>
+        <View className="flex-1">
+          <Text className="text-3xl font-bold text-white mb-6 mt-5">
+            Bienvenido, Prof. {user?.nombres}
+          </Text>
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#0ea5e9" />
+            <Text className="text-white text-lg mt-2">
+              Cargando materias...
+            </Text>
+          </View>
         </View>
       ) : sections.length === 0 ? (
         <View className="flex-1">
