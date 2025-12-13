@@ -70,3 +70,7 @@ export function IconMoreVertical() {
 export function IconUsers() {
   return <Feather name="users" size={20} color="white" />;
 }
+
+export function IconTrash() {
+  return <Feather name="trash-2" size={20} color="white" />;
+}

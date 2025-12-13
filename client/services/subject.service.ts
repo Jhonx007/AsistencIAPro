@@ -28,3 +28,39 @@ export async function getReportPrevious({
     throw error;
   }
 }
+
+export async function createMateria(name: string) {
+  try {
+    const response = await axiosInstance.post("/materias", { name });
+    return response.data;
+  } catch (error) {
+    console.error("Error al crear materia:", error);
+    throw error;
+  }
+}
+
+export async function createSeccion(codigo: string, semestre: string) {
+  try {
+    const response = await axiosInstance.post("/secciones", {
+      codigo,
+      semestre,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error al crear sección:", error);
+    throw error;
+  }
+}
+
+export async function createClase(materiaId: number, seccionId: number) {
+  try {
+    const response = await axiosInstance.post("/clases/assign", {
+      materiaId,
+      seccionId,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error al crear clase:", error);
+    throw error;
+  }
+}
