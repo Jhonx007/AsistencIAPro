@@ -11,13 +11,14 @@ async function getAll(req, res) {
     });
   } catch (error) {
     console.error('Error al obtener estudiantes:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       success: false,
       error: 'Error al obtener estudiantes',
-      message: error.message 
+      message: error.message
     });
   }
 }
+
 
 // Para obtener un estudiante por ID
 async function getById(req, res) {
@@ -124,10 +125,42 @@ async function deleteEstudiante(req, res) {
   }
 }
 
+// Para registrar rostro de un estudiante
+async function registerFace(req, res) {
+  try {
+    const { id } = req.params;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({
+        success: false,
+        message: "No se ha subido ninguna imagen"
+      });
+    }
+
+    // Call service to handle logic
+    const updatedStudent = await estudianteService.registerFaceService(id, file.buffer);
+
+    res.status(200).json({
+      success: true,
+      message: "Rostro registrado exitosamente",
+      data: updatedStudent
+    });
+
+  } catch (error) {
+    console.error("Error en registerFace:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Error interno del servidor"
+    });
+  }
+}
+
 export default {
   getAll,
   getById,
   create,
   update,
-  deleteEstudiante
+  deleteEstudiante,
+  registerFace
 };
