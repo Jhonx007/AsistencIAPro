@@ -1,0 +1,8 @@
+deepface
+tf-keras
+numpy
+opencv-python
+flask
+# Opcional: para optimización
+# retinaface
+

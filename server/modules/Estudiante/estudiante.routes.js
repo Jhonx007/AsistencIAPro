@@ -1,4 +1,5 @@
 import { Router } from "express";
+import multer from "multer";
 import estudianteController from "./estudiante.controller.js";
 import { validateData, validateParams } from "../../middlewares/validator.js";
 import { createEstudianteSchema, updateEstudianteSchema, idParamSchema } from "./estudiante.validator.js";
@@ -19,5 +20,9 @@ router.put("/:id", validateParams(idParamSchema), validateData(updateEstudianteS
 
 // DELETE /estudiantes/:id - Eliminar un estudiante
 router.delete("/:id", validateParams(idParamSchema), estudianteController.deleteEstudiante);
+
+// PATCH /estudiantes/:id/register-face - Registrar rostro
+const upload = multer({ storage: multer.memoryStorage() });
+router.patch("/:id/register-face", validateParams(idParamSchema), upload.single("image"), estudianteController.registerFace);
 
 export default router;
