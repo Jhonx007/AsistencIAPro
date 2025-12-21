@@ -1,141 +1,144 @@
-import * as faceapi from 'face-api.js';
-import canvas from 'canvas';
+import { spawn } from 'child_process';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
+import os from 'os';
 
+// Configuración de rutas para módulos ES6 (__dirname y __filename)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const { Canvas, Image, ImageData } = canvas;
-faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
-let modelsLoaded = false;
+class FaceRecognitionService {
+  constructor() {
+    // Ruta al script de Python que queremos ejecutar
+    this.pythonScriptPath = path.join(__dirname, 'python', 'process_face.py');
 
-/**
- * Inicializa y carga los modelos pre-entrenados de face-api.js
- * Solo se ejecuta una vez
- */
-async function loadModels() {
-  if (modelsLoaded) {
-    console.log('✅ Modelos ya cargados previamente');
-    return;
+    // Determinar la ruta exacta del ejecutable de Python dentro del venv
+    this.pythonExecutable = this.getPythonExecutablePath();
+
+    console.log(`[IA Service] Python Executable: ${this.pythonExecutable}`);
   }
 
-  try {
-    const modelsPath = path.join(__dirname, '../models');
-    console.log('📦 Cargando modelos desde:', modelsPath);
+  /**
+   * Determina la ruta del intérprete de Python dentro del venv
+   * basado en el sistema operativo (Windows vs. Unix).
+   * @returns {string} La ruta absoluta al ejecutable.
+   */
+  getPythonExecutablePath() {
+    // La carpeta 'python' y 'venv' están al lado de este archivo JS
+    const venvBase = path.join(__dirname, 'python', 'venv');
 
-    // Cargar los tres modelos necesarios
-    await Promise.all([
-      faceapi.nets.ssdMobilenetv1.loadFromDisk(modelsPath),      // Detección de rostros
-      faceapi.nets.faceLandmark68Net.loadFromDisk(modelsPath),   // Puntos faciales (68 puntos)
-      faceapi.nets.faceRecognitionNet.loadFromDisk(modelsPath)   // Descriptores faciales
-    ]);
-
-    modelsLoaded = true;
-    console.log('✅ Modelos cargados exitosamente');
-    console.log('   - SSD MobileNet V1 (detección de rostros)');
-    console.log('   - Face Landmark 68 Net (puntos faciales)');
-    console.log('   - Face Recognition Net (descriptores)');
-  } catch (error) {
-    console.error('❌ Error al cargar modelos:', error);
-    throw new Error('No se pudieron cargar los modelos de face-api.js');
-  }
-}
-
-/**
- * Detecta un rostro en una imagen y extrae su descriptor facial
- * @param {Buffer} imageBuffer - Buffer de la imagen
- * @returns {Promise<Object>} - Objeto con detección, landmarks y descriptor
- */
-async function detectFaceAndDescriptor(imageBuffer) {
-  // Asegurar que los modelos estén cargados
-  if (!modelsLoaded) {
-    await loadModels();
+    // Windows usa 'Scripts\python.exe'
+    if (os.platform() === 'win32') {
+      return path.join(venvBase, 'Scripts', 'python.exe');
+    }
+    // Linux/macOS usa 'bin/python'
+    else {
+      return path.join(venvBase, 'bin', 'python');
+    }
   }
 
-  try {
-    // Convertir buffer a imagen de canvas
-    const img = await canvas.loadImage(imageBuffer);
-
-    // Detectar rostro + landmarks + descriptor
-    const detection = await faceapi
-      .detectSingleFace(img)
-      .withFaceLandmarks()
-      .withFaceDescriptor();
-
-    if (!detection) {
-      throw new Error('No se detectó ningún rostro en la imagen');
+  // Mantenemos la firma del método para no romper el resto del código
+  async loadModels() {
+    // Comprobación de que el ejecutable existe
+    if (!fs.existsSync(this.pythonExecutable)) {
+      console.error(`🔴 ERROR: El intérprete de Python no se encontró en: ${this.pythonExecutable}`);
+      console.log('🚨 SOLUCIÓN: Cree y active el venv e instale dependencias (pip install -r requirements.txt).');
+      // Lanzamos un error si la IA es crítica para el arranque
+      // throw new Error("No se pudo iniciar el servicio de IA. Falta el entorno virtual.");
     }
 
-    return {
-      detection: detection.detection,
-      landmarks: detection.landmarks,
-      descriptor: Array.from(detection.descriptor), // Convertir Float32Array a Array para JSON
-      confidence: detection.detection.score
-    };
-  } catch (error) {
-    console.error('❌ Error al detectar rostro:', error);
-    throw error;
+    console.log('✅ Servicio de IA (Python) listo para usar.');
+    return Promise.resolve();
+  }
+
+  /**
+   * Detecta rostro y extrae descriptor usando el microservicio Python
+   * @param {Buffer} imageBuffer - Buffer de la imagen
+   * @returns {Promise<Object>} - { descriptor: number[], confidence: number }
+   */
+  async detectFaceAndDescriptor(imageBuffer) {
+    return new Promise((resolve, reject) => {
+      // 1. Crear archivo temporal para pasar la imagen a Python
+      const tempFilePath = path.join(os.tmpdir(), `face_${Date.now()}.jpg`);
+
+      try {
+        fs.writeFileSync(tempFilePath, imageBuffer);
+      } catch (error) {
+        return reject(new Error(`Error al guardar imagen temporal: ${error.message}`));
+      }
+
+      // 2. Ejecutar script de Python USANDO EL EJECUTABLE DEL VENV
+      // Utilizamos 'this.pythonExecutable' en lugar de simplemente 'python'
+      const pythonProcess = spawn(this.pythonExecutable, [this.pythonScriptPath, tempFilePath]);
+
+      let dataString = '';
+      let errorString = '';
+
+      pythonProcess.stdout.on('data', (data) => {
+        dataString += data.toString();
+      });
+
+      pythonProcess.stderr.on('data', (data) => {
+        errorString += data.toString();
+      });
+
+      pythonProcess.on('close', (code) => {
+        // 3. Limpiar archivo temporal
+        try {
+          if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
+        } catch (e) {
+          console.warn('No se pudo borrar archivo temporal:', e);
+        }
+
+        if (code !== 0) {
+          // Si Python falla o devuelve un código de error
+          return reject(new Error(`Error en reconocimiento facial (Exit code ${code}): ${errorString || 'Error desconocido'}`));
+        }
+
+        try {
+          // 4. Procesar la respuesta JSON de Python
+          const result = JSON.parse(dataString);
+
+          if (!result.success) {
+            return reject(new Error(result.error || 'No se detectó rostro (Respuesta JSON de Python)'));
+          }
+
+          resolve({
+            descriptor: result.descriptor,
+            confidence: 0.99,
+            box: result.face_locations ? result.face_locations[0] : null
+          });
+
+        } catch (error) {
+          reject(new Error(`Error al procesar respuesta JSON de IA: ${error.message}. Output recibido: ${dataString}`));
+        }
+      });
+
+      // Manejo de errores de inicio (ej. el ejecutable no se encontró)
+      pythonProcess.on('error', (err) => {
+        reject(new Error(`Fallo al iniciar el proceso Python: ${err.message}. Revise la ruta: ${this.pythonExecutable}`));
+      });
+    });
+  }
+
+  /**
+   * Compara dos descriptores faciales (Distancia Euclidiana)
+   */
+  compareFaces(descriptor1, descriptor2) {
+    if (!descriptor1 || !descriptor2) return 1.0; // Max distancia
+
+    // Calcular distancia euclidiana
+    const dist = Math.sqrt(
+      descriptor1.reduce((sum, val, i) => sum + Math.pow(val - descriptor2[i], 2), 0)
+    );
+    return dist;
+  }
+
+  isMatch(descriptor1, descriptor2, threshold = 0.6) {
+    // 0.6 es el umbral estándar para dlib/face_recognition
+    return this.compareFaces(descriptor1, descriptor2) < threshold;
   }
 }
 
-/**
- * Compara dos descriptores faciales y retorna la distancia euclidiana
- * @param {Array<number>} descriptor1 - Primer descriptor (128 números)
- * @param {Array<number>} descriptor2 - Segundo descriptor (128 números)
- * @returns {number} - Distancia euclidiana (0-1, menor es más similar)
- */
-function compareFaces(descriptor1, descriptor2) {
-  // Convertir arrays a Float32Array si es necesario
-  const desc1 = new Float32Array(descriptor1);
-  const desc2 = new Float32Array(descriptor2);
-
-  // Calcular distancia euclidiana
-  const distance = faceapi.euclideanDistance(desc1, desc2);
-
-  return distance;
-}
-
-/**
- * Encuentra el mejor match entre un descriptor y una lista de descriptores etiquetados
- * @param {Array<number>} queryDescriptor - Descriptor a comparar
- * @param {Array<Object>} labeledDescriptors - Array de {label, descriptors}
- * @returns {Object} - {label, distance, match}
- */
-function findBestMatch(queryDescriptor, labeledDescriptors) {
-  // Crear LabeledFaceDescriptors para face-api.js
-  const labeled = labeledDescriptors.map(item =>
-    new faceapi.LabeledFaceDescriptors(
-      item.label,
-      item.descriptors.map(d => new Float32Array(d))
-    )
-  );
-
-  // Crear FaceMatcher con umbral de 0.6 (default)
-  const faceMatcher = new faceapi.FaceMatcher(labeled, 0.6);
-
-  // Encontrar mejor match
-  const bestMatch = faceMatcher.findBestMatch(new Float32Array(queryDescriptor));
-
-  return {
-    label: bestMatch.label,
-    distance: bestMatch.distance,
-    match: bestMatch.label !== 'unknown' // true si encontró match
-  };
-}
-
-/**
- * Verifica si los modelos están cargados
- * @returns {boolean}
- */
-function areModelsLoaded() {
-  return modelsLoaded;
-}
-
-export default {
-  loadModels,
-  detectFaceAndDescriptor,
-  compareFaces,
-  findBestMatch,
-  areModelsLoaded
-};
+export default new FaceRecognitionService();
