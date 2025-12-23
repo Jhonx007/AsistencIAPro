@@ -51,6 +51,27 @@ export interface Report {
   Clase: string[];
 }
 
+export interface StudentsAPIResponse {
+  success: boolean;
+  data: Registration[];
+}
+
+export interface Registration {
+  id_matricula: number;
+  estudiante: Student;
+}
+
+export interface Student {
+  id: number;
+  nombres: string;
+  apellidos: string;
+  cedula: string;
+  created_at: Date;
+  updated_at: Date;
+  face_descriptor: number[] | null;
+  foto_url: string | null;
+}
+
 export interface CardSubjectProps {
   item: Subject;
 }

@@ -13,118 +13,92 @@ model Profesor {
   apellidos  String
   cedula     String   @unique
   telefono   String?
-
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-
   clases     clases[]
 }
 
 model Materia {
   id         Int       @id @default(autoincrement())
   nombre     String    @unique
-
   created_at DateTime  @default(now()) @map("created_at")
   updated_at DateTime? @updatedAt @map("updated_at")
-
   clases     clases[]
 }
 
 model Seccion {
-  id         Int         @id @default(autoincrement())
-  codigo     String      @unique
+  id         Int       @id @default(autoincrement())
+  codigo     String    @unique
   semestre   String
-
-  created_at DateTime    @default(now()) @map("created_at")
-  updated_at DateTime?   @updatedAt @map("updated_at")
-
+  created_at DateTime  @default(now()) @map("created_at")
+  updated_at DateTime? @updatedAt @map("updated_at")
   clases     clases[]
 }
 
 model Estudiante {
-  id         Int         @id @default(autoincrement())
-  nombres    String
-  apellidos  String
-  cedula     String      @unique
-
-  created_at DateTime    @default(now())
-  updated_at DateTime    @updatedAt
-
-  Matricula  Matricula[]
+  id              Int         @id @default(autoincrement())
+  nombres         String
+  apellidos       String
+  cedula          String      @unique
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+  face_descriptor Json?
+  foto_url        String?
+  Matricula       Matricula[]
 }
 
 model Matricula {
-  id         Int         @id @default(autoincrement())
   id_estudiante Int
-  id_clase    Int
-  
   created_at    DateTime     @default(now())
   updated_at    DateTime?    @updatedAt
-
+  id            Int          @id @default(autoincrement())
+  id_clase      Int
   Asistencia    Asistencia[]
-
+  Clase         clases       @relation(fields: [id_clase], references: [id])
   Estudiante    Estudiante   @relation(fields: [id_estudiante], references: [id])
-  Clase       clases      @relation(fields: [id_clase], references: [id])
 
   @@unique([id_estudiante, id_clase])
 }
 
 model Asistencia {
   id              Int       @id @default(autoincrement())
-  id_matricula    Int
-  fecha   DateTime  @default(now()) @db.Date
   es_presente     Boolean   @default(false) @map("es_presente")
-  foto_url        String?  // Opcional: URL de la foto
-  face_descriptor Json?    // Obligatorio: Aquí se guarda el vector facial
-
   created_at      DateTime  @default(now()) @map("created_at")
   updated_at      DateTime  @updatedAt @map("updated_at")
-
-  Matricula     Matricula   @relation(fields: [id_matricula], references: [id])
+  id_matricula    Int
+  fecha           DateTime  @default(now()) @db.Date
+  Matricula       Matricula @relation(fields: [id_matricula], references: [id])
 
   @@unique([id_matricula, fecha])
 }
 
 model Reporte {
-  id           Int      @id @default(autoincrement())
-  id_clase     Int      @map("id_clase")
-  
-  // Fecha del reporte (fecha de la clase)
-  fecha        DateTime @map("fecha") @db.Date
-  
-  // Título o descripción del reporte (ej: "Clase del 11/12/2025")
-  titulo       String?
-  
-  // Estadísticas del reporte
-  total_estudiantes Int? @map("total_estudiantes")
-  total_presentes   Int? @map("total_presentes")
-  total_ausentes    Int? @map("total_ausentes")
+  id                Int      @id @default(autoincrement())
+  created_at        DateTime @default(now()) @map("created_at")
+  updated_at        DateTime @updatedAt @map("updated_at")
+  id_clase          Int      @map("id_clase")
+  titulo            String?
+  total_ausentes    Int?     @map("total_ausentes")
+  total_estudiantes Int?     @map("total_estudiantes")
+  total_presentes   Int?     @map("total_presentes")
+  fecha             DateTime @map("fecha") @db.Date
+  Clase             clases   @relation(fields: [id_clase], references: [id])
 
-  created_at   DateTime @default(now()) @map("created_at")
-  updated_at   DateTime @updatedAt @map("updated_at")
-
-  Clase        clases   @relation(fields: [id_clase], references: [id])
-  
   @@unique([id_clase, fecha])
 }
 
 model clases {
-  id          Int      @id @default(autoincrement())
-
-  created_at  DateTime @default(now())
-
+  id          Int         @id @default(autoincrement())
+  created_at  DateTime    @default(now())
   materia_id  Int
-  profesor_id String   @db.Uuid
+  profesor_id String      @db.Uuid
   seccion_id  Int
-
   updated_at  DateTime
-  
-  Materia     Materia  @relation(fields: [materia_id], references: [id])
-  Profesor    Profesor @relation(fields: [profesor_id], references: [id])
-  Seccion     Seccion  @relation(fields: [seccion_id], references: [id])
-
   Matriculas  Matricula[]
   Reportes    Reporte[]
+  Materia     Materia     @relation(fields: [materia_id], references: [id])
+  Profesor    Profesor    @relation(fields: [profesor_id], references: [id])
+  Seccion     Seccion     @relation(fields: [seccion_id], references: [id])
 
   @@unique([profesor_id, materia_id, seccion_id])
 }
