@@ -103,3 +103,43 @@ interface ButtonProps extends TouchableOpacityProps {
   buttonStyles?: string;
   isLoading?: boolean;
 }
+
+export interface CreateSubjectFormData {
+  nombre: string;
+  semestre: string;
+  seccion: string;
+}
+
+export interface CreateStudentFormData {
+  nombres: string;
+  apellidos: string;
+  cedula: string;
+}
+
+export interface StudentListItem {
+  id?: number;
+  nombres: string;
+  apellidos: string;
+  cedula: string;
+  tempId?: string;
+}
+
+export interface CreateSubjectResponse {
+  success: boolean;
+  data: {
+    id: number;
+    nombre: string;
+  };
+  message?: string;
+}
+
+export interface CreateClaseResponse {
+  success: boolean;
+  data: {
+    id: number;
+    materia_id: number;
+    seccion_id: number;
+    profesor_id: string;
+  };
+  message?: string;
+}

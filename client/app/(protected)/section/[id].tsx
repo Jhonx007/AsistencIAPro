@@ -1,7 +1,12 @@
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
-import { Stack, useLocalSearchParams, router } from "expo-router";
+import {
+  Stack,
+  useLocalSearchParams,
+  router,
+  useFocusEffect,
+} from "expo-router";
 import CustomButton from "@/components/CustomButton";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getReportPrevious } from "@/services/subject.service";
 import { Report } from "@/types/type";
 import CardReport from "@/components/CardReport";
@@ -14,19 +19,39 @@ function Details() {
   const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState<Report[]>([]);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const response = await getReportPrevious({ id: id as string });
-        setReports(response.data);
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setLoading(false);
-      }
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await getReportPrevious({ id: id as string });
+      setReports(response.data);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoading(false);
     }
-    fetchData();
   }, [id]);
+
+  // Initial load
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Refresh when screen comes into focus (after returning from attendance)
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [fetchData])
+  );
+
+  const handleGenerateAttendance = () => {
+    // TODO: Navigate to attendance creation screen
+    // For now, let's just refresh the list
+    // In the future, you would navigate to an attendance screen like:
+    // router.push(`/attendance/create?claseId=${id}&materia=${materia}&seccion=${seccion}`);
+
+    // Temporary: just refresh to show new attendance if it was created
+    fetchData();
+  };
 
   return (
     <View className="flex-1 bg-gray-900 px-3 pb-5 ">
@@ -87,7 +112,10 @@ function Details() {
         />
       )}
 
-      <CustomButton title="Generar Nueva Asistencia" />
+      <CustomButton
+        title="Generar Nueva Asistencia"
+        onPress={handleGenerateAttendance}
+      />
     </View>
   );
 }

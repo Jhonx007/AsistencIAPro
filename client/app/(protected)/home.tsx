@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { getSubjects } from "@/services/subject.service";
 import { CardSubject } from "@/components/CardSubject";
 import { Subject, SubjectData } from "@/types/type";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import { IconLogout } from "@/components/Icons";
 import EmptyState from "@/components/EmptyState";
 
@@ -54,7 +54,7 @@ function Home() {
       <TouchableOpacity
         className="absolute bottom-8 right-6 bg-sky-600 size-16 rounded-full items-center justify-center shadow-lg z-10"
         onPress={() => {
-          console.log("Crear nueva materia");
+          router.push("/create-subject");
         }}
       >
         <Text className="text-white text-4xl">+</Text>
