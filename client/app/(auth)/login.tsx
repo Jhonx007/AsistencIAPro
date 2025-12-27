@@ -10,33 +10,26 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { loginService } from "@/services/auth.service";
 import { useAuth } from "@/context/AuthContext";
 import CustomButton from "@/components/CustomButton";
-import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { handleApiError } from "@/utils/handleApiError";
 
 function Login() {
   const { login } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const { mutate, isPending } = useMutation({
+    mutationFn: loginService,
+    onSuccess: (data) => {
+      const { token, refreshToken, profesor } = data.data;
+      login(token, refreshToken, profesor);
+      router.replace("/(protected)/home");
+    },
+    onError: (error) => {
+      handleApiError(error, "Error al iniciar sesión");
+    },
+  });
 
   const { control, handleSubmit } = useForm<LoginSchemaType>({
     resolver: zodResolver(LoginSchema),
   });
-
-  const onSubmit = async (data: LoginSchemaType) => {
-    try {
-      setIsLoading(true);
-
-      const response = await loginService(data);
-
-      if (response?.success) {
-        const { token, refreshToken, profesor } = response.data.data;
-        await login(token, refreshToken, profesor);
-        router.replace("/(protected)/home");
-      }
-    } catch (error) {
-      console.error("Error en login:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <SafeAreaView className="flex-1 gap-6 bg-gray-900 px-3 py-10">
@@ -70,8 +63,8 @@ function Login() {
       </Text>
       <CustomButton
         title="Iniciar Sesión"
-        onPress={handleSubmit(onSubmit)}
-        isLoading={isLoading}
+        onPress={handleSubmit((data) => mutate(data))}
+        isLoading={isPending}
       />
     </SafeAreaView>
   );

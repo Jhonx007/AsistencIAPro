@@ -12,7 +12,6 @@ export async function getSubjects(): Promise<SubjectsApiResponse> {
     );
     return response.data;
   } catch (error) {
-    console.error("Error al obtener las materias:", error);
     throw error;
   }
 }
@@ -28,7 +27,6 @@ export async function getReportPrevious({
     );
     return response.data;
   } catch (error) {
-    console.log(error);
     throw error;
   }
 }

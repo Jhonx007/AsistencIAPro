@@ -16,28 +16,27 @@ import {
 import { registerService } from "@/services/auth.service";
 import { useAuth } from "@/context/AuthContext";
 import { router } from "expo-router";
+import { useMutation } from "@tanstack/react-query";
+import { handleApiError } from "@/utils/handleApiError";
 
 function Register() {
   const { login } = useAuth();
   const swiperRef = useRef<Swiper>(null);
+  const { mutate, isPending } = useMutation({
+    mutationFn: registerService,
+    onSuccess: (data) => {
+      const { token, refreshToken, profesor } = data.data;
+      login(token, refreshToken, profesor);
+      router.replace("/(protected)/home");
+    },
+    onError: (error) => {
+      handleApiError(error, "Error al registrar");
+    },
+  });
   const { control, handleSubmit, trigger } = useForm<RegisterSchemaType>({
     resolver: zodResolver(RegisterSchema),
     mode: "onChange",
   });
-
-  const onSubmit = async (data: RegisterSchemaType) => {
-    const response = await registerService(data);
-    if (response?.success) {
-      // La respuesta tiene estructura: response.data.data.{token, refreshToken, profesor}
-      const { token, refreshToken, profesor } = response.data.data;
-
-      // Guardar tokens y datos del usuario
-      await login(token, refreshToken, profesor);
-
-      // Navegar a la pantalla protegida
-      router.replace("/(protected)/home");
-    }
-  };
 
   return (
     <SafeAreaView className="flex-1 bg-gray-900 px-3 py-3">
@@ -117,8 +116,9 @@ function Register() {
           </View>
           <CustomButton
             title="Registrarse"
-            onPress={handleSubmit(onSubmit)}
+            onPress={handleSubmit((data) => mutate(data))}
             buttonStyles="mb-5"
+            isLoading={isPending}
           />
         </View>
       </Swiper>
