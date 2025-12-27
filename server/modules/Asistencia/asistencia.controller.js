@@ -128,11 +128,90 @@ async function deleteAsistencia(req, res) {
   }
 }
 
+// Para autenticar asistencia mediante reconocimiento facial
+async function authenticateFaceAttendance(req, res) {
+  try {
+    const { id_clase } = req.body;
+
+    // Validar que se haya enviado una imagen
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'Imagen no proporcionada',
+        message: 'Debe enviar una imagen para autenticar la asistencia'
+      });
+    }
+
+    const imageBuffer = req.file.buffer;
+
+    // Llamar al servicio de autenticación facial
+    const result = await asistenciaService.authenticateAttendanceByFace(
+      parseInt(id_clase),
+      imageBuffer
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: `Asistencia registrada exitosamente para ${result.estudiante.nombres} ${result.estudiante.apellidos}`,
+      data: {
+        estudiante: result.estudiante,
+        asistencia: result.asistencia,
+        reporte: result.reporte,
+        matchInfo: result.matchInfo
+      }
+    });
+
+  } catch (error) {
+    console.error('Error al autenticar asistencia facial:', error);
+
+    // Manejo de errores específicos
+    if (error.message.includes('No se detectó ningún rostro')) {
+      return res.status(400).json({
+        success: false,
+        error: 'Rostro no detectado',
+        message: 'No se detectó ningún rostro en la imagen. Por favor, intente nuevamente con una imagen clara de su rostro.'
+      });
+    }
+
+    if (error.message.includes('Rostro no reconocido')) {
+      return res.status(404).json({
+        success: false,
+        error: 'Rostro no reconocido',
+        message: 'No se encontró coincidencia con ningún estudiante matriculado en esta clase. Asegúrese de tener su rostro registrado.'
+      });
+    }
+
+    if (error.message.includes('Ya registraste asistencia')) {
+      return res.status(409).json({
+        success: false,
+        error: 'Asistencia duplicada',
+        message: 'Ya registraste tu asistencia en esta clase hoy.'
+      });
+    }
+
+    if (error.message.includes('No hay estudiantes')) {
+      return res.status(404).json({
+        success: false,
+        error: 'Sin estudiantes registrados',
+        message: 'No hay estudiantes con rostro registrado matriculados en esta clase.'
+      });
+    }
+
+    // Error genérico
+    return res.status(500).json({
+      success: false,
+      error: 'Error al autenticar asistencia',
+      message: error.message
+    });
+  }
+}
+
 export default {
   registerAsistencia,
   getAllAsistencias,
   getAsistenciasByMatricula,
   getAsistenciasByFecha,
   updateAsistencia,
-  deleteAsistencia
+  deleteAsistencia,
+  authenticateFaceAttendance
 };
