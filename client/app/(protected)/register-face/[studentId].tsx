@@ -11,22 +11,48 @@ import {
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import axiosInstance from "@/utils/axios";
 import Svg, { Defs, Mask, Rect, Ellipse } from "react-native-svg";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { registerFaceStudent } from "@/services/ia.service";
+import { handleApiError } from "@/utils/handleApiError";
 
 function RegisterFace() {
-  const { studentId, studentName, studentIdentity } = useLocalSearchParams<{
-    studentId: string;
-    studentName: string;
-    studentIdentity: string;
-  }>();
+  const { studentId, studentName, studentIdentity, classId } =
+    useLocalSearchParams<{
+      studentId: string;
+      studentName: string;
+      studentIdentity: string;
+      classId: string;
+    }>();
+
+  const { mutate: handleSubmitMutation, isPending } = useMutation({
+    mutationFn: async () => await handleSubmit(),
+    onSuccess: () => {
+      Alert.alert(
+        "¡Éxito!",
+        `El rostro de ${studentName} ha sido registrado correctamente.`,
+        [
+          {
+            text: "OK",
+            onPress: () => router.back(),
+          },
+        ]
+      );
+    },
+    onError: (error: any) => {
+      handleApiError(
+        error,
+        "No se pudo registrar el rostro. Intente de nuevo."
+      );
+    },
+  });
   const router = useRouter();
+  const queryClient = useQueryClient();
   const cameraRef = useRef<CameraView>(null);
 
   const [permission, requestPermission] = useCameraPermissions();
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [facing, setFacing] = useState<"front" | "back">("front");
 
   function toggleCameraFacing() {
@@ -67,54 +93,23 @@ function RegisterFace() {
   const handleSubmit = async () => {
     if (!capturedImage) return;
 
-    setIsSubmitting(true);
-    try {
-      const formData = new FormData();
+    const formData = new FormData();
 
-      // Preparar la imagen para el envío
-      const filename = capturedImage.split("/").pop() || "face.jpg";
-      const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : `image/jpeg`;
+    // Preparar la imagen para el envío
+    const filename = capturedImage.split("/").pop() || "face.jpg";
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : `image/jpeg`;
 
-      console.log("URI de la imagen:", capturedImage);
-      console.log("Nombre del archivo:", filename);
-      console.log("Tipo de archivo:", type);
+    // @ts-ignore - React Native maneja FormData de manera especial
+    formData.append("image", {
+      uri: capturedImage,
+      name: filename,
+      type,
+    });
 
-      // @ts-ignore - React Native maneja FormData de manera especial
-      formData.append("image", {
-        uri: capturedImage,
-        name: filename,
-        type,
-      });
+    await registerFaceStudent(studentId as string, formData);
 
-      // Enviar al endpoint correcto usando PATCH
-      await axiosInstance.patch(
-        `/estudiantes/${studentId}/register-face`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          timeout: 60000, // 60 segundos para dar tiempo a la IA
-        }
-      );
-
-      Alert.alert(
-        "¡Éxito!",
-        `El rostro de ${studentName} ha sido registrado correctamente.`,
-        [
-          {
-            text: "OK",
-            onPress: () => router.back(),
-          },
-        ]
-      );
-    } catch (error) {
-      console.error("Error al registrar rostro:", error);
-      Alert.alert("Error", "No se pudo registrar el rostro. Intente de nuevo.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    queryClient.invalidateQueries({ queryKey: ["students", classId] });
   };
 
   // Pantalla de carga de permisos
@@ -134,8 +129,6 @@ function RegisterFace() {
         <Stack.Screen
           options={{
             title: "Registrar Rostro",
-            headerStyle: { backgroundColor: "#111827" },
-            headerTintColor: "#fff",
           }}
         />
         <Ionicons name="camera-outline" size={80} color="#6b7280" />
@@ -160,9 +153,7 @@ function RegisterFace() {
     <View className="flex-1 bg-gray-900">
       <Stack.Screen
         options={{
-          title: studentName || "Registrar Rostro",
-          headerStyle: { backgroundColor: "#111827" },
-          headerTintColor: "#fff",
+          title: "Registro Biométrico",
         }}
       />
 
@@ -237,8 +228,8 @@ function RegisterFace() {
           <View className="flex-row justify-center gap-4">
             <TouchableOpacity
               onPress={handleRetake}
-              disabled={isSubmitting}
-              className="flex-row items-center bg-gray-700 px-6 py-4 rounded-xl"
+              disabled={isPending}
+              className="flex-row items-center bg-gray-700 px-6 py-4 rounded-xl disabled:opacity-50"
             >
               <Ionicons name="refresh" size={24} color="white" />
               <Text className="text-white font-bold ml-2 text-lg">
@@ -247,17 +238,17 @@ function RegisterFace() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={handleSubmit}
-              disabled={isSubmitting}
-              className="flex-row items-center bg-green-600 px-6 py-4 rounded-xl"
+              onPress={() => handleSubmitMutation()}
+              disabled={isPending}
+              className="flex-row items-center bg-green-600 px-6 py-4 rounded-xl disabled:opacity-50"
             >
-              {isSubmitting ? (
+              {isPending ? (
                 <ActivityIndicator color="white" />
               ) : (
                 <Ionicons name="checkmark-circle" size={24} color="white" />
               )}
               <Text className="text-white font-bold ml-2 text-lg">
-                {isSubmitting ? "Guardando..." : "Confirmar"}
+                {isPending ? "Guardando..." : "Confirmar"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -289,7 +280,7 @@ function RegisterFace() {
           <Text className="text-white text-center font-bold text-xl">
             {studentName}
           </Text>
-          <Text className="text-gray-500 text-center text-lg">
+          <Text className="text-gray-400 text-center font-medium text-lg">
             ID: {studentIdentity}
           </Text>
         </View>

@@ -10,7 +10,13 @@ import {
 } from "./Icons";
 import { Registration } from "@/types/type";
 
-function CardStudentRegister({ item }: { item: Registration }) {
+function CardStudentRegister({
+  item,
+  classId,
+}: {
+  item: Registration;
+  classId: string;
+}) {
   const router = useRouter();
   const isRegistered = item.estudiante.face_descriptor ? true : false;
   const fullName = `${item.estudiante.nombres} ${item.estudiante.apellidos}`;
@@ -22,6 +28,7 @@ function CardStudentRegister({ item }: { item: Registration }) {
         studentId: item.estudiante.id.toString(),
         studentName: fullName,
         studentIdentity: item.estudiante.cedula,
+        classId,
       },
     });
   };
@@ -66,7 +73,7 @@ function CardStudentRegister({ item }: { item: Registration }) {
       {!isRegistered && (
         <TouchableOpacity
           onPress={handleRegisterFace}
-          className="bg-blue-500 p-3 rounded-xl active:bg-blue-600"
+          className="bg-blue-500/70 p-3 rounded-xl"
         >
           <IconCamera />
         </TouchableOpacity>

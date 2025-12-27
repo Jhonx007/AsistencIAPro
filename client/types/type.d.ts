@@ -2,6 +2,18 @@ import { TextInputProps, TouchableOpacityProps } from "react-native";
 
 import { Control } from "react-hook-form";
 
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  data: AuthData;
+}
+
+export interface AuthData {
+  token: string;
+  refreshToken: string;
+  profesor: User;
+}
+
 export interface User {
   id: string;
   nombres: string;
