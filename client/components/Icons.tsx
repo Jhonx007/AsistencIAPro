@@ -2,6 +2,7 @@ import Feather from "@expo/vector-icons/Feather";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { Ionicons } from "@expo/vector-icons";
 
 export function IconUser() {
   return <Feather name="user" size={22} color="gray" />;
@@ -69,4 +70,24 @@ export function IconMoreVertical() {
 
 export function IconUsers() {
   return <Feather name="users" size={20} color="white" />;
+}
+
+export function IconProfile() {
+  return <FontAwesome6 name="user-large" size={20} color="gray" />;
+}
+
+export function IconFace() {
+  return <MaterialIcons name="face" size={24} color="#22c55e" />;
+}
+
+export function IconCheck() {
+  return <Ionicons name="checkmark-circle" size={16} color="#22c55e" />;
+}
+
+export function IconAlert() {
+  return <Ionicons name="alert-circle" size={16} color="#f59e0b" />;
+}
+
+export function IconCamera() {
+  return <Ionicons name="camera" size={22} color="white" />;
 }

@@ -48,7 +48,7 @@ class FaceRecognitionService {
       // throw new Error("No se pudo iniciar el servicio de IA. Falta el entorno virtual.");
     }
 
-    console.log('✅ Servicio de IA (Python) listo para usar.');
+    console.log(' Servicio de IA (Python) listo para usar.');
     return Promise.resolve();
   }
 

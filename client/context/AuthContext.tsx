@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   saveAuthData,
   getUserData,
@@ -64,6 +65,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const queryClient = useQueryClient();
+
   const logout = async () => {
     try {
       // Limpiar almacenamiento
@@ -71,6 +74,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       // Limpiar estado
       setUser(null);
+
+      // Limpiar caché de TanStack Query
+      queryClient.clear();
 
       // Redirigir a login
       router.replace("/(auth)/login");

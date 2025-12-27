@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Alert } from "react-native";
+
 import { getAccessToken } from "./storage";
 
 const backendURL = process.env.EXPO_PUBLIC_BACKEND_URL;
@@ -7,6 +7,8 @@ const backendURL = process.env.EXPO_PUBLIC_BACKEND_URL;
 if (!backendURL) {
   console.error("❌ ERROR: EXPO_PUBLIC_BACKEND_URL no está definida en .env");
 }
+
+let requestCounter = 1;
 
 const axiosInstance = axios.create({
   baseURL: backendURL,
@@ -19,10 +21,14 @@ const axiosInstance = axios.create({
 // Interceptor para agregar token y logging
 axiosInstance.interceptors.request.use(
   async (config) => {
+    const requestId = requestCounter++;
+    // Adjuntamos el ID a la config para usarlo en la respuesta
+    (config as any).metadata = { requestId };
+
     // Obtener el token del almacenamiento seguro
     const token = await getAccessToken();
 
-    console.log("🚀 Token:", token);
+    console.log(`🚀 [#${requestId}] Token:`, token);
 
     // Si hay token, agregarlo al header Authorization
     if (token) {
@@ -30,7 +36,9 @@ axiosInstance.interceptors.request.use(
     }
 
     console.log(
-      `📡 ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`
+      `📡 [#${requestId}] ${config.method?.toUpperCase()} ${config.baseURL}${
+        config.url
+      }`
     );
     return config;
   },
@@ -42,24 +50,32 @@ axiosInstance.interceptors.request.use(
 // Interceptor para manejar errores
 axiosInstance.interceptors.response.use(
   // Si la respuesta es exitosa
-  (response) => response,
+  (response) => {
+    const { requestId } = (response.config as any).metadata || {};
+    console.log(`✅ [#${requestId}] Respuesta exitosa`);
+    return response;
+  },
   // Si la respuesta es un error
   (error) => {
+    const { requestId } = (error.config as any)?.metadata || {};
+    const prefix = requestId ? `[#${requestId}] ` : "";
+
     if (error.response) {
       // El servidor respondió con un código de error
-      Alert.alert("Error", error.response.data.message);
+      console.log(
+        `❌ ${prefix}Error ${error.response.status}:`,
+        error.response.data
+      );
     } else if (error.request) {
-      // No hubo respuesta del servidor
+      // No hubo respuesta del servidor (Problema de Red)
       console.error(
-        "❌ Sin respuesta del servidor. Verifica que el backend esté corriendo."
+        `❌ ${prefix}Sin respuesta del servidor. Verifica que el backend esté corriendo.`
       );
-      Alert.alert(
-        "Error",
-        "Sin respuesta del servidor. Verifica que el backend esté corriendo."
-      );
+      // Alert eliminado para evitar duplicidad. Se maneja en handleApiError.
     } else {
-      console.error("❌ Error:", error.message);
-      Alert.alert("Error", error.message);
+      // Error al configurar la petición
+      console.error(`❌ ${prefix}Error:`, error.message);
+      // Alert eliminado para evitar duplicidad. Se maneja en handleApiError.
     }
     return Promise.reject(error);
   }

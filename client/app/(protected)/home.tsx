@@ -1,43 +1,47 @@
 import {
   ActivityIndicator,
   FlatList,
+  RefreshControl,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useAuth } from "@/context/AuthContext";
-import { useEffect, useState } from "react";
 import { getSubjects } from "@/services/subject.service";
 import { CardSubject } from "@/components/CardSubject";
 import { Subject, SubjectData } from "@/types/type";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import { IconLogout } from "@/components/Icons";
 import EmptyState from "@/components/EmptyState";
+import { useQuery } from "@tanstack/react-query";
 
 function Home() {
   const { user, logout } = useAuth();
-  const [sections, setSections] = useState<Subject[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    data: sections,
+    isLoading,
+    isRefetching,
+    refetch,
+    isError,
+  } = useQuery({
+    queryKey: ["subjects"],
+    queryFn: () => fetchSubjects(),
+  });
 
-  useEffect(() => {
-    async function fetchSubjects() {
-      try {
-        const response = await getSubjects();
-        const subjectsArray = Object.entries(response.data).map(
-          ([name, data]: [string, SubjectData]): Subject => ({
-            name,
-            secciones: data.secciones,
-          })
-        );
-        setSections(subjectsArray);
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setLoading(false);
-      }
+  async function fetchSubjects() {
+    try {
+      const response = await getSubjects();
+      const subjectsArray = Object.entries(response.data).map(
+        ([name, data]: [string, SubjectData]): Subject => ({
+          name,
+          secciones: data.secciones,
+        })
+      );
+      return subjectsArray;
+    } catch (e) {
+      throw e;
     }
-    fetchSubjects();
-  }, []);
+  }
 
   return (
     <View className="flex-1 bg-gray-900 px-3">
@@ -54,13 +58,13 @@ function Home() {
       <TouchableOpacity
         className="absolute bottom-8 right-6 bg-sky-600 size-16 rounded-full items-center justify-center shadow-lg z-10"
         onPress={() => {
-          console.log("Crear nueva materia");
+          router.push("/create-subject");
         }}
       >
         <Text className="text-white text-4xl">+</Text>
       </TouchableOpacity>
 
-      {loading ? (
+      {isLoading ? (
         <View className="flex-1">
           <Text className="text-3xl font-bold text-white mb-6 mt-5">
             Bienvenido, Prof. {user?.nombres}
@@ -72,7 +76,16 @@ function Home() {
             </Text>
           </View>
         </View>
-      ) : sections.length === 0 ? (
+      ) : isError ? (
+        <View className="flex-1">
+          <Text className="text-3xl font-bold text-white mb-6 mt-5">
+            Bienvenido, Prof. {user?.nombres}
+          </Text>
+          <Text className="text-red-400 text-lg mt-2">
+            Ha ocurrido un error
+          </Text>
+        </View>
+      ) : sections?.length === 0 ? (
         <View className="flex-1">
           <Text className="text-3xl font-bold text-white mb-8 mt-5">
             Bienvenido, Prof. {user?.nombres}
@@ -92,6 +105,14 @@ function Home() {
           )}
           data={sections}
           keyExtractor={(item) => item.name}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              colors={["#0284c7"]}
+              progressBackgroundColor="#030712"
+            />
+          }
           renderItem={({ item }) => (
             <CardSubject name={item.name} secciones={item.secciones} />
           )}
