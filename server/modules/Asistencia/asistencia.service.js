@@ -1,4 +1,5 @@
 import prisma from "../../config/prisma.js";
+import faceRecognitionService from "../../IA/faceRecognition.service.js";
 
 // Para registrar múltiples asistencias a la vez y generar reporte automático
 async function registerAsistencia(data) {
@@ -52,11 +53,11 @@ async function registerAsistencia(data) {
     // 3. Generar o Actualizar el Reporte
     if (id_clase) {
       const total_estudiantes = total_presentes + total_ausentes;
-      
+
       // Normalizar fecha (sin hora) para buscar reporte del día
       const fechaReporte = new Date(fechaAsistencia);
       fechaReporte.setHours(0, 0, 0, 0);
-      
+
       // Usamos upsert: si existe el reporte del día, lo actualizamos; si no, lo creamos.
       const reporte = await tx.reporte.upsert({
         where: {
@@ -80,7 +81,7 @@ async function registerAsistencia(data) {
           total_ausentes
         }
       });
-      
+
       // Adjuntamos el reporte a la respuesta para que el frontend lo reciba
       return {
         asistencias: createdAsistencias,
@@ -192,6 +193,176 @@ async function updateAsistencia(id, data) {
   return asistencia;
 }
 
+// Para autenticar asistencia mediante reconocimiento facial
+async function authenticateAttendanceByFace(id_clase, imageBuffer) {
+  // 1. Extraer descriptor facial de la imagen capturada
+  const detection = await faceRecognitionService.detectFaceAndDescriptor(imageBuffer);
+
+  if (!detection || !detection.descriptor) {
+    throw new Error("No se detectó ningún rostro en la imagen");
+  }
+
+  const capturedDescriptor = detection.descriptor;
+
+  // 2. Obtener todos los estudiantes matriculados en la clase con face_descriptor registrado
+  const matriculas = await prisma.matricula.findMany({
+    where: {
+      id_clase: id_clase,
+      Estudiante: {
+        face_descriptor: {
+          not: null
+        }
+      }
+    },
+    include: {
+      Estudiante: {
+        select: {
+          id: true,
+          nombres: true,
+          apellidos: true,
+          cedula: true,
+          face_descriptor: true
+        }
+      },
+      Clase: {
+        include: {
+          Materia: true,
+          Seccion: true
+        }
+      }
+    }
+  });
+
+  if (matriculas.length === 0) {
+    throw new Error("No hay estudiantes con rostro registrado matriculados en esta clase");
+  }
+
+  // 3. Comparar el descriptor capturado con cada estudiante matriculado
+  let matchedMatricula = null;
+  let minDistance = Infinity;
+
+  for (const matricula of matriculas) {
+    const storedDescriptor = matricula.Estudiante.face_descriptor;
+
+    // Convertir de JSON a array si es necesario
+    const descriptorArray = Array.isArray(storedDescriptor)
+      ? storedDescriptor
+      : JSON.parse(JSON.stringify(storedDescriptor));
+
+    const distance = faceRecognitionService.compareFaces(capturedDescriptor, descriptorArray);
+
+    if (distance < minDistance) {
+      minDistance = distance;
+      matchedMatricula = matricula;
+    }
+  }
+
+  // 4. Verificar si hay coincidencia (umbral de 0.6)
+  const THRESHOLD = 0.6;
+  if (minDistance >= THRESHOLD) {
+    throw new Error("Rostro no reconocido. No se encontró coincidencia con ningún estudiante matriculado");
+  }
+
+  // 5. Verificar si ya existe asistencia para hoy en esta matrícula
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const existingAsistencia = await prisma.asistencia.findFirst({
+    where: {
+      id_matricula: matchedMatricula.id,
+      fecha: today
+    }
+  });
+
+  if (existingAsistencia) {
+    throw new Error("Ya registraste asistencia en esta clase hoy");
+  }
+
+  // 6. Registrar la asistencia usando una transacción (igual que registerAsistencia)
+  return await prisma.$transaction(async (tx) => {
+    // Crear la asistencia
+    const asistencia = await tx.asistencia.create({
+      data: {
+        id_matricula: matchedMatricula.id,
+        es_presente: true,
+        fecha: today
+      },
+      include: {
+        Matricula: {
+          include: {
+            Estudiante: {
+              select: {
+                id: true,
+                nombres: true,
+                apellidos: true,
+                cedula: true
+              }
+            },
+            Clase: {
+              include: {
+                Materia: true,
+                Seccion: true,
+                Profesor: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // 7. Actualizar o crear el reporte del día
+    // Contar todas las asistencias de hoy para esta clase
+    const asistenciasHoy = await tx.asistencia.findMany({
+      where: {
+        fecha: today,
+        Matricula: {
+          id_clase: id_clase
+        }
+      }
+    });
+
+    const total_presentes = asistenciasHoy.filter(a => a.es_presente).length;
+    const total_ausentes = asistenciasHoy.filter(a => !a.es_presente).length;
+    const total_estudiantes = total_presentes + total_ausentes;
+
+    const reporte = await tx.reporte.upsert({
+      where: {
+        id_clase_fecha: {
+          id_clase: id_clase,
+          fecha: today
+        }
+      },
+      update: {
+        total_estudiantes,
+        total_presentes,
+        total_ausentes,
+        updated_at: new Date()
+      },
+      create: {
+        id_clase,
+        fecha: today,
+        titulo: `Clase del ${today.toLocaleDateString('es-ES')}`,
+        total_estudiantes,
+        total_presentes,
+        total_ausentes
+      }
+    });
+
+    return {
+      estudiante: matchedMatricula.Estudiante,
+      asistencia,
+      reporte,
+      matchInfo: {
+        distance: minDistance,
+        threshold: THRESHOLD,
+        confidence: (1 - (minDistance / THRESHOLD)) * 100
+      }
+    };
+  }, {
+    timeout: 20000
+  });
+}
+
 // Para eliminar una asistencia
 async function deleteAsistencia(id) {
   await prisma.asistencia.delete({
@@ -207,5 +378,6 @@ export default {
   getAsistenciasByMatricula,
   getAsistenciasByFecha,
   updateAsistencia,
-  deleteAsistencia
+  deleteAsistencia,
+  authenticateAttendanceByFace
 };

@@ -10,7 +10,7 @@ export const registerAsistenciaSchema = z.object({
       })
         .int('El ID de matrícula debe ser un número entero')
         .positive('El ID de matrícula debe ser positivo'),
-      
+
       es_presente: z.boolean({
         required_error: 'El estado de presencia es requerido',
         invalid_type_error: 'El estado de presencia debe ser booleano (true/false)'
@@ -46,9 +46,18 @@ export const fechaParamSchema = z.object({
     }, 'Fecha inválida')
 });
 
+// Schema para autenticar asistencia con reconocimiento facial
+export const authenticateFaceSchema = z.object({
+  id_clase: z.string()
+    .regex(/^\d+$/, 'El ID de clase debe ser un número entero válido')
+    .transform((val) => parseInt(val, 10))
+    .refine((val) => val > 0, 'El ID de clase debe ser positivo')
+});
+
 export default {
   registerAsistenciaSchema,
   updateAsistenciaSchema,
   idParamSchema,
-  fechaParamSchema
+  fechaParamSchema,
+  authenticateFaceSchema
 };
