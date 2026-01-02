@@ -5,6 +5,82 @@ import {
   SubjectsApiResponse,
 } from "@/types/type";
 
+// API Response Interfaces
+export interface MateriaApiResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: number;
+    name: string;
+  };
+}
+
+export interface SeccionApiResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: number;
+    codigo: string;
+    semestre: string;
+  };
+}
+
+export interface ClaseApiResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: number;
+    materiaId: number;
+    seccionId: number;
+    profesorId: string;
+  };
+}
+
+// Create Materia
+export async function createMateria(name: string): Promise<MateriaApiResponse> {
+  try {
+    const response = await axiosInstance.post<MateriaApiResponse>(
+      "/materias",
+      { name }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Create Seccion
+export async function createSeccion(
+  codigo: string,
+  semestre: string
+): Promise<SeccionApiResponse> {
+  try {
+    const response = await axiosInstance.post<SeccionApiResponse>(
+      "/secciones",
+      { codigo, semestre }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Create Clase (assign materia and seccion)
+export async function createClase(
+  materiaId: number,
+  seccionId: number
+): Promise<ClaseApiResponse> {
+  try {
+    const response = await axiosInstance.post<ClaseApiResponse>(
+      "/clases/assign",
+      { materiaId, seccionId }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
 export async function getSubjects(): Promise<SubjectsApiResponse> {
   try {
     const response = await axiosInstance.get<SubjectsApiResponse>(

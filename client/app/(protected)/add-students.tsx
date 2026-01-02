@@ -66,13 +66,29 @@ export default function AddStudents() {
       // Reset form
       reset();
 
-      Alert.alert("Éxito", "Estudiante agregado correctamente");
+      Alert.alert("✅ Éxito", "Estudiante agregado correctamente");
     } catch (error: any) {
       console.error("Error al agregar estudiante:", error);
-      Alert.alert(
-        "Error",
-        error.response?.data?.message || "Error al agregar el estudiante"
-      );
+      
+      // Check if it's a duplicate cedula error
+      const errorMessage = error.response?.data?.message || "";
+      
+      if (errorMessage.includes("unique constraint") || 
+          errorMessage.includes("cedula") || 
+          errorMessage.includes("duplicate") ||
+          errorMessage.includes("ya existe")) {
+        Alert.alert(
+          "⚠️ Estudiante Duplicado",
+          `Ya existe un estudiante con la cédula "${data.cedula}".\n\nPor favor verifica los datos e intenta con un ID diferente.`,
+          [{ text: "Entendido", style: "default" }]
+        );
+      } else {
+        Alert.alert(
+          "❌ Error",
+          errorMessage || "Error al agregar el estudiante. Por favor intenta nuevamente.",
+          [{ text: "Cerrar", style: "cancel" }]
+        );
+      }
     } finally {
       setIsCreatingStudent(false);
     }

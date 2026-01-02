@@ -91,3 +91,8 @@ export function IconAlert() {
 export function IconCamera() {
   return <Ionicons name="camera" size={22} color="white" />;
 }
+
+export function IconTrash() {
+  return <Feather name="trash-2" size={20} color="white" />;
+}
+
