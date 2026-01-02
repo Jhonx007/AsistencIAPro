@@ -141,3 +141,8 @@ export function IconRefresh() {
 export function IconSearch() {
   return <Ionicons name="search" size={24} color="white" />;
 }
+
+export function IconTrash() {
+  return <Feather name="trash-2" size={20} color="white" />;
+}
+
