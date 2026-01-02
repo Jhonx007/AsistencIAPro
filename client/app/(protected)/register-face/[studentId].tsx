@@ -10,11 +10,11 @@ import {
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import Svg, { Defs, Mask, Rect, Ellipse } from "react-native-svg";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { registerFaceStudent } from "@/services/ia.service";
 import { handleApiError } from "@/utils/handleApiError";
+import { IconCameraSwitch, IconCheck, IconRefresh } from "@/components/Icons";
 
 function RegisterFace() {
   const { studentId, studentName, studentIdentity, classId } =
@@ -131,7 +131,7 @@ function RegisterFace() {
             title: "Registrar Rostro",
           }}
         />
-        <Ionicons name="camera-outline" size={80} color="#6b7280" />
+        <IconCameraSwitch />
         <Text className="text-white text-xl font-bold mt-6 text-center">
           Permiso de cámara requerido
         </Text>
@@ -231,7 +231,7 @@ function RegisterFace() {
               disabled={isPending}
               className="flex-row items-center bg-gray-700 px-6 py-4 rounded-xl disabled:opacity-50"
             >
-              <Ionicons name="refresh" size={24} color="white" />
+              <IconRefresh />
               <Text className="text-white font-bold ml-2 text-lg">
                 Volver a tomar
               </Text>
@@ -245,7 +245,7 @@ function RegisterFace() {
               {isPending ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Ionicons name="checkmark-circle" size={24} color="white" />
+                <IconCheck size={24} color="white" />
               )}
               <Text className="text-white font-bold ml-2 text-lg">
                 {isPending ? "Guardando..." : "Confirmar"}
@@ -270,7 +270,7 @@ function RegisterFace() {
               onPress={toggleCameraFacing}
               className="bg-gray-800 p-4 rounded-full absolute right-0"
             >
-              <Ionicons name="camera-reverse" size={28} color="white" />
+              <IconCameraSwitch />
             </TouchableOpacity>
           </View>
         )}

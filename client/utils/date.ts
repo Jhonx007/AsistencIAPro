@@ -8,7 +8,7 @@ dayjs.locale("es");
  * @param date - Fecha en formato string (ISO, YYYY-MM-DD, etc.)
  * @returns Fecha formateada con mes capitalizado
  */
-export function formatDate(date: string): string {
+export function formatDate(date: string | Date): string {
   const formatted = dayjs(date).format("D [de] MMM, YYYY");
   // Capitalizar la primera letra del mes
   return formatted.replace(

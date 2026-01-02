@@ -4,6 +4,8 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Ionicons } from "@expo/vector-icons";
 
+import AntDesign from "@expo/vector-icons/AntDesign";
+
 export function IconUser() {
   return <Feather name="user" size={22} color="gray" />;
 }
@@ -80,16 +82,64 @@ export function IconFace() {
   return <MaterialIcons name="face" size={24} color="#22c55e" />;
 }
 
-export function IconCheck() {
-  return <Ionicons name="checkmark-circle" size={16} color="#22c55e" />;
+export function IconCheck({
+  size = 16,
+  color = "#22c55e",
+}: {
+  size?: number;
+  color?: string;
+}) {
+  return <Ionicons name="checkmark-circle" size={size} color={color} />;
 }
 
 export function IconAlert() {
   return <Ionicons name="alert-circle" size={16} color="#f59e0b" />;
 }
 
+export function IconList() {
+  return <AntDesign name="unordered-list" size={22} color="white" />;
+}
+
+export function IconPeopleOutline() {
+  return <Ionicons name="people-outline" size={22} color="#6b7280" />;
+}
+
+export function IconDocumentText() {
+  return <Ionicons name="document-text" size={18} color="white" />;
+}
+
+export function IconScanOutline({
+  size = 32,
+  color = "#9ca3af",
+}: {
+  size?: number;
+  color?: string;
+}) {
+  return <Ionicons name="scan-outline" size={size} color={color} />;
+}
+
+export function IconIdCardOutline() {
+  return <Ionicons name="id-card-outline" size={12} color="#9ca3af" />;
+}
+
+export function IconCameraSwitch() {
+  return <Ionicons name="camera-reverse" size={28} color="white" />;
+}
+
 export function IconCamera() {
   return <Ionicons name="camera" size={22} color="white" />;
+}
+
+export function IconCameraOutline() {
+  return <Ionicons name="camera-outline" size={80} color="#6b7280" />;
+}
+
+export function IconRefresh() {
+  return <Ionicons name="refresh" size={24} color="white" />;
+}
+
+export function IconSearch() {
+  return <Ionicons name="search" size={24} color="white" />;
 }
 
 export function IconTrash() {
