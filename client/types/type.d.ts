@@ -15,11 +15,16 @@ export interface AuthData {
 }
 
 export interface User {
-  id: string;
+  id: string | number;
   nombres: string;
   apellidos: string;
   cedula: string;
-  telefono: string | null;
+  telefono?: string | null;
+}
+
+export interface StudentAttendance extends User {
+  hora: string;
+  esPresente: boolean;
 }
 
 export interface Subject {

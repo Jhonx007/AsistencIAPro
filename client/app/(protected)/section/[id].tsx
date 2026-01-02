@@ -104,7 +104,16 @@ function Details() {
         />
       )}
 
-      <CustomButton title="Generar Nueva Asistencia" />
+      <CustomButton
+        title="Generar Nueva Asistencia"
+        onPress={() =>
+          router.push(
+            `/section/${id}/attendance-method?materia=${encodeURIComponent(
+              materia as string
+            )}&seccion=${encodeURIComponent(seccion as string)}`
+          )
+        }
+      />
     </View>
   );
 }
