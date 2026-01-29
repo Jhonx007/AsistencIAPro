@@ -9,11 +9,7 @@ async function registerAsistencia(data) {
     let id_clase = null;
     let fechaAsistencia = new Date(); // Fecha actual para el reporte
 
-    // 1. Contadores para el reporte
-    let total_presentes = 0;
-    let total_ausentes = 0;
-
-    // 2. Procesar cada asistencia
+    // 1. Procesar cada asistencia
     for (const item of data.asistencias) {
       // Obtenemos la matrícula para saber la clase (solo necesitamos hacerlo una vez si asumimos misma clase)
       if (!id_clase) {
@@ -41,22 +37,35 @@ async function registerAsistencia(data) {
       });
 
       createdAsistencias.push(asistencia);
-
-      // Actualizar contadores
-      if (item.es_presente) {
-        total_presentes++;
-      } else {
-        total_ausentes++;
-      }
     }
 
-    // 3. Generar o Actualizar el Reporte
+    // 2. Generar o Actualizar el Reporte
     if (id_clase) {
-      const total_estudiantes = total_presentes + total_ausentes;
-
       // Normalizar fecha (sin hora) para buscar reporte del día
       const fechaReporte = new Date(fechaAsistencia);
       fechaReporte.setHours(0, 0, 0, 0);
+
+      // Contar TODOS los estudiantes matriculados en la clase
+      const totalMatriculados = await tx.matricula.count({
+        where: {
+          id_clase: id_clase
+        }
+      });
+
+      // Contar TODAS las asistencias del día
+      const asistenciasHoy = await tx.asistencia.findMany({
+        where: {
+          fecha: fechaReporte,
+          Matricula: {
+            id_clase: id_clase
+          }
+        }
+      });
+
+      const total_presentes = asistenciasHoy.filter(a => a.es_presente).length;
+      // Los ausentes son todos los matriculados menos los presentes
+      const total_ausentes = totalMatriculados - total_presentes;
+      const total_estudiantes = totalMatriculados;
 
       // Usamos upsert: si existe el reporte del día, lo actualizamos; si no, lo creamos.
       const reporte = await tx.reporte.upsert({
@@ -311,7 +320,14 @@ async function authenticateAttendanceByFace(id_clase, imageBuffer) {
     });
 
     // 7. Actualizar o crear el reporte del día
-    // Contar todas las asistencias de hoy para esta clase
+    // Contar TODOS los estudiantes matriculados en la clase
+    const totalMatriculados = await tx.matricula.count({
+      where: {
+        id_clase: id_clase
+      }
+    });
+
+    // Contar cuántos estudiantes han registrado asistencia hoy (escaneado su rostro)
     const asistenciasHoy = await tx.asistencia.findMany({
       where: {
         fecha: today,
@@ -321,9 +337,11 @@ async function authenticateAttendanceByFace(id_clase, imageBuffer) {
       }
     });
 
+    // Los presentes son los que han escaneado (es_presente = true)
     const total_presentes = asistenciasHoy.filter(a => a.es_presente).length;
-    const total_ausentes = asistenciasHoy.filter(a => !a.es_presente).length;
-    const total_estudiantes = total_presentes + total_ausentes;
+    // Los ausentes son todos los matriculados menos los presentes
+    const total_ausentes = totalMatriculados - total_presentes;
+    const total_estudiantes = totalMatriculados;
 
     const reporte = await tx.reporte.upsert({
       where: {
