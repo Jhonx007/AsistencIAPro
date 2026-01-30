@@ -206,6 +206,30 @@ async function authenticateFaceAttendance(req, res) {
   }
 }
 
+// Para obtener detalles de asistencia de una clase en una fecha
+async function getAsistenciaDetails(req, res) {
+  try {
+    const { id_clase, fecha } = req.params;
+
+    const detalles = await asistenciaService.getDetallesAsistencia(
+      parseInt(id_clase),
+      fecha
+    );
+
+    return res.json({
+      success: true,
+      data: detalles
+    });
+  } catch (error) {
+    console.error('Error al obtener detalles de asistencia:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Error al obtener detalles de asistencia',
+      message: error.message
+    });
+  }
+}
+
 export default {
   registerAsistencia,
   getAllAsistencias,
@@ -213,5 +237,7 @@ export default {
   getAsistenciasByFecha,
   updateAsistencia,
   deleteAsistencia,
-  authenticateFaceAttendance
+  deleteAsistencia,
+  authenticateFaceAttendance,
+  getAsistenciaDetails
 };

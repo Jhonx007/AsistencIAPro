@@ -7,7 +7,8 @@ import {
   updateAsistenciaSchema,
   idParamSchema,
   fechaParamSchema,
-  authenticateFaceSchema
+  authenticateFaceSchema,
+  claseFechaParamSchema
 } from "./asistencia.validator.js";
 
 const router = Router();
@@ -48,6 +49,13 @@ router.get(
   "/fecha/:fecha",
   validateParams(fechaParamSchema),
   asistenciaController.getAsistenciasByFecha
+);
+
+// GET /asistencia/clase/:id_clase/fecha/:fecha - Obtener detalles de asistencias de una clase en una fecha
+router.get(
+  "/clase/:id_clase/fecha/:fecha",
+  validateParams(claseFechaParamSchema),
+  asistenciaController.getAsistenciaDetails
 );
 
 // PUT /asistencia/:id - Actualizar una asistencia

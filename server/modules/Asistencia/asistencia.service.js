@@ -390,6 +390,80 @@ async function deleteAsistencia(id) {
   });
 }
 
+// Para obtener detalles de asistencia (presentes y ausentes) de una clase en una fecha
+async function getDetallesAsistencia(id_clase, fecha) {
+  // 1. Obtener todos los estudiantes matriculados en la clase
+  const matriculas = await prisma.matricula.findMany({
+    where: {
+      id_clase: id_clase
+    },
+    include: {
+      Estudiante: true
+    }
+  });
+
+  // 2. Obtener asistencias registradas para esa fecha y clase
+  // Corregir problema de zona horaria: crear fecha en hora local
+  const [year, month, day] = fecha.split('-').map(Number);
+  const fechaBusqueda = new Date(year, month - 1, day);
+  fechaBusqueda.setHours(0, 0, 0, 0);
+
+  const asistencias = await prisma.asistencia.findMany({
+    where: {
+      fecha: fechaBusqueda,
+      Matricula: {
+        id_clase: id_clase
+      }
+    }
+  });
+
+  // 3. Procesar datos
+  const presentes = [];
+  const ausentes = [];
+
+  // Crear un mapa de asistencias para búsqueda rápida
+  const asistenciaMap = new Map();
+  asistencias.forEach(a => {
+    asistenciaMap.set(a.id_matricula, a);
+  });
+
+  for (const matricula of matriculas) {
+    const asistencia = asistenciaMap.get(matricula.id);
+    const estudianteData = {
+      id: matricula.Estudiante.id,
+      nombres: matricula.Estudiante.nombres,
+      apellidos: matricula.Estudiante.apellidos,
+      cedula: matricula.Estudiante.cedula,
+      foto_url: matricula.Estudiante.foto_url
+    };
+
+    if (asistencia && asistencia.es_presente) {
+      presentes.push({
+        estudiante: estudianteData,
+        hora_registro: asistencia.created_at
+      });
+    } else {
+      // Si no tiene registro o es_presente es false, cuenta como ausente
+      ausentes.push({
+        estudiante: estudianteData
+      });
+    }
+  }
+
+  return {
+    fecha: fechaBusqueda,
+    total_matriculados: matriculas.length,
+    resumen: {
+      presentes: presentes.length,
+      ausentes: ausentes.length
+    },
+    detalles: {
+      presentes,
+      ausentes
+    }
+  };
+}
+
 export default {
   registerAsistencia,
   getAsistencias,
@@ -397,5 +471,6 @@ export default {
   getAsistenciasByFecha,
   updateAsistencia,
   deleteAsistencia,
-  authenticateAttendanceByFace
+  authenticateAttendanceByFace,
+  getDetallesAsistencia
 };
