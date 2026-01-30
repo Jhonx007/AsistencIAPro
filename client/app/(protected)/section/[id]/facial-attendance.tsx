@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { handleApiError } from "@/utils/handleApiError";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -27,6 +27,8 @@ import {
 import { CardStudentAssistant } from "@/components/CardStudentAssistant";
 import EmptyState from "@/components/EmptyState";
 import { StudentAttendance } from "@/types/type";
+import { formatDateForApi } from "@/utils/date";
+import { getReportByDate } from "@/services/subject.service";
 
 function FacialAttendance() {
   const { id, materia, seccion } = useLocalSearchParams<{
@@ -37,6 +39,34 @@ function FacialAttendance() {
   const [studentsAssist, setStudentsAssist] = useState<StudentAttendance[]>([]);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ["15%", "60%", "85%"], []);
+
+  const todayDate = formatDateForApi(new Date());
+
+  // Cargar asistencia existente del día
+  const { data: existingAttendance, isLoading: isLoadingExisting } = useQuery({
+    queryKey: ["existing-attendance", id, todayDate],
+    queryFn: () => getReportByDate({ id: id as string, date: todayDate }),
+    select: (response) => response.data,
+  });
+
+  // Inicializar lista con estudiantes ya presentes del día
+  useEffect(() => {
+    if (existingAttendance?.detalles?.presentes) {
+      const presentStudents: StudentAttendance[] =
+        existingAttendance.detalles.presentes.map((item) => ({
+          id: item.estudiante.id,
+          nombres: item.estudiante.nombres,
+          apellidos: item.estudiante.apellidos,
+          cedula: item.estudiante.cedula,
+          hora: new Date(item.hora_registro).toLocaleTimeString("es-VE", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          esPresente: true,
+        }));
+      setStudentsAssist(presentStudents);
+    }
+  }, [existingAttendance]);
 
   const { mutate: handleIdentifyMutation, isPending } = useMutation({
     mutationFn: async () => await handleIdentify(),
@@ -58,7 +88,12 @@ function FacialAttendance() {
           esPresente: asistencia.es_presente,
         };
 
-        setStudentsAssist((prev) => [...prev, nuevoEstudiante]);
+        // Solo agregar si no existe ya en la lista
+        setStudentsAssist((prev) => {
+          const exists = prev.some((s) => s.id === nuevoEstudiante.id);
+          if (exists) return prev;
+          return [...prev, nuevoEstudiante];
+        });
       }
 
       const studentName = `${estudiante.nombres} ${estudiante.apellidos}`;
@@ -71,7 +106,7 @@ function FacialAttendance() {
             text: "Siguiente",
             onPress: () => handleRetake(),
           },
-        ]
+        ],
       );
     },
     onError: (error: any) => {
@@ -293,17 +328,11 @@ function FacialAttendance() {
                 </View>
                 <TouchableOpacity
                   onPress={() => {
-                    const presentesIds = studentsAssist.map((e) => e.id);
-                    console.log("presentesIds", presentesIds);
-                    router.push({
-                      pathname: `/section/[id]/attendance-summary`,
-                      params: {
-                        id,
-                        materia,
-                        seccion,
-                        presentes: JSON.stringify(presentesIds),
-                      },
-                    });
+                    router.push(
+                      `/section/${id}/details-attendance?materia=${materia}&seccion=${seccion}&date=${formatDateForApi(
+                        new Date(),
+                      )}`,
+                    );
                   }}
                   className="flex-row items-center bg-blue-600 px-4 py-2 rounded-full disabled:opacity-50"
                 >
@@ -322,7 +351,14 @@ function FacialAttendance() {
                 flexGrow: 1,
               }}
             >
-              {studentsAssist.length === 0 ? (
+              {isLoadingExisting ? (
+                <View className="flex-1 items-center justify-center">
+                  <ActivityIndicator size="large" color="#3b82f6" />
+                  <Text className="text-gray-400 mt-3">
+                    Cargando asistencia del día...
+                  </Text>
+                </View>
+              ) : studentsAssist.length === 0 ? (
                 <View className="flex-1 items-center justify-center">
                   <EmptyState
                     icon={<IconScanOutline size={48} />}

@@ -1,6 +1,7 @@
 import axiosInstance from "@/utils/axios";
 import {
   ReportApiResponse,
+  ReportDetailsAPIResponse,
   StudentsAPIResponse,
   SubjectsApiResponse,
 } from "@/types/type";
@@ -39,10 +40,9 @@ export interface ClaseApiResponse {
 // Create Materia
 export async function createMateria(name: string): Promise<MateriaApiResponse> {
   try {
-    const response = await axiosInstance.post<MateriaApiResponse>(
-      "/materias",
-      { name }
-    );
+    const response = await axiosInstance.post<MateriaApiResponse>("/materias", {
+      name,
+    });
     return response.data;
   } catch (error) {
     throw error;
@@ -52,12 +52,12 @@ export async function createMateria(name: string): Promise<MateriaApiResponse> {
 // Create Seccion
 export async function createSeccion(
   codigo: string,
-  semestre: string
+  semestre: string,
 ): Promise<SeccionApiResponse> {
   try {
     const response = await axiosInstance.post<SeccionApiResponse>(
       "/secciones",
-      { codigo, semestre }
+      { codigo, semestre },
     );
     return response.data;
   } catch (error) {
@@ -68,12 +68,12 @@ export async function createSeccion(
 // Create Clase (assign materia and seccion)
 export async function createClase(
   materiaId: number,
-  seccionId: number
+  seccionId: number,
 ): Promise<ClaseApiResponse> {
   try {
     const response = await axiosInstance.post<ClaseApiResponse>(
       "/clases/assign",
-      { materiaId, seccionId }
+      { materiaId, seccionId },
     );
     return response.data;
   } catch (error) {
@@ -84,7 +84,7 @@ export async function createClase(
 export async function getSubjects(): Promise<SubjectsApiResponse> {
   try {
     const response = await axiosInstance.get<SubjectsApiResponse>(
-      "/clases/myclasses/grouped/"
+      "/clases/myclasses/grouped/",
     );
     return response.data;
   } catch (error) {
@@ -99,7 +99,24 @@ export async function getReportPrevious({
 }): Promise<ReportApiResponse> {
   try {
     const response = await axiosInstance.get<ReportApiResponse>(
-      `/reportes/clase/${id}`
+      `/reportes/clase/${id}`,
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getReportByDate({
+  id,
+  date,
+}: {
+  id: string;
+  date: string;
+}): Promise<ReportDetailsAPIResponse> {
+  try {
+    const response = await axiosInstance.get<ReportDetailsAPIResponse>(
+      `/asistencia/clase/${id}/fecha/${date}`,
     );
     return response.data;
   } catch (error) {
@@ -114,7 +131,7 @@ export async function getStudentsByClass({
 }): Promise<StudentsAPIResponse> {
   try {
     const response = await axiosInstance.get<StudentsAPIResponse>(
-      `/clases/${id}/estudiantes`
+      `/clases/${id}/estudiantes`,
     );
     return response.data;
   } catch (error) {
