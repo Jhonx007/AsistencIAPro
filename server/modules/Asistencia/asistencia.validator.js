@@ -54,10 +54,24 @@ export const authenticateFaceSchema = z.object({
     .refine((val) => val > 0, 'El ID de clase debe ser positivo')
 });
 
+// Schema para validar id_clase y fecha en parámetros
+export const claseFechaParamSchema = z.object({
+  id_clase: z.string()
+    .regex(/^\d+$/, 'El ID de clase debe ser un número entero válido')
+    .transform((val) => parseInt(val, 10)),
+  fecha: z.string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'La fecha debe estar en formato YYYY-MM-DD')
+    .refine((date) => {
+      const d = new Date(date);
+      return d instanceof Date && !isNaN(d);
+    }, 'Fecha inválida')
+});
+
 export default {
   registerAsistenciaSchema,
   updateAsistenciaSchema,
   idParamSchema,
   fechaParamSchema,
-  authenticateFaceSchema
+  authenticateFaceSchema,
+  claseFechaParamSchema
 };
