@@ -42,8 +42,8 @@ function Details() {
                   onPress: () =>
                     router.push(
                       `/section/${id}/students?materia=${encodeURIComponent(
-                        materia as string
-                      )}&seccion=${encodeURIComponent(seccion as string)}`
+                        materia as string,
+                      )}&seccion=${encodeURIComponent(seccion as string)}`,
                     ),
                 },
               ]}
@@ -100,7 +100,13 @@ function Details() {
             />
           }
           data={reports}
-          renderItem={({ item }) => <CardReport report={item} />}
+          renderItem={({ item }) => (
+            <CardReport
+              report={item}
+              materia={materia as string}
+              seccion={seccion as string}
+            />
+          )}
         />
       )}
 
@@ -109,8 +115,8 @@ function Details() {
         onPress={() =>
           router.push(
             `/section/${id}/attendance-method?materia=${encodeURIComponent(
-              materia as string
-            )}&seccion=${encodeURIComponent(seccion as string)}`
+              materia as string,
+            )}&seccion=${encodeURIComponent(seccion as string)}`,
           )
         }
       />

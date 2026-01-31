@@ -55,6 +55,45 @@ export interface ReportApiResponse {
   data: Report[];
 }
 
+export interface ReportDetailsAPIResponse {
+  success: boolean;
+  data: ReportDetails;
+}
+
+export interface ReportDetails {
+  fecha: Date;
+  total_matriculados: number;
+  resumen: Resumen;
+  detalles: Detalles;
+}
+
+export interface Resumen {
+  presentes: number;
+  ausentes: number;
+}
+
+export interface Detalles {
+  presentes: Presente[] | [];
+  ausentes: Ausente[] | [];
+}
+
+export interface Presente {
+  estudiante: Estudiante;
+  hora_registro: string;
+}
+
+export interface Ausente {
+  estudiante: Estudiante;
+}
+
+export interface Estudiante {
+  id: number;
+  nombres: string;
+  apellidos: string;
+  cedula: string;
+  foto_url: null;
+}
+
 export interface Report {
   id: number;
   id_clase: number;
